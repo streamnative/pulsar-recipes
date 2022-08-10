@@ -128,9 +128,9 @@ public class TaskListener<T, R> implements MessageListener<T> {
       TaskProcessingState taskProcessingState,
       String failureReason)
       throws PulsarClientException {
-    TaskProcessingState failedTaskProccessingState =
+    TaskProcessingState failedTaskProcessingState =
         taskProcessingState.fail(clock.millis(), failureReason);
-    taskStateUpdater.update(failedTaskProccessingState);
-    handleFailed(consumer, message, failedTaskProccessingState);
+    taskStateUpdater.update(failedTaskProcessingState);
+    handleFailed(consumer, message, failedTaskProcessingState);
   }
 }
