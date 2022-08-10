@@ -32,8 +32,7 @@ class MessagingFactory<T> {
   private final Schema<TaskProcessingState> stateSchema;
   private final TaskWorkerConfiguration<T, ?> configuration;
 
-  // TODO we're going to be consuming the state events twice - once for the tableView and once for
-  // expiration
+  // TODO we're going to be consuming the state events twice - once for the tableView and once for expiration
   TableView<TaskProcessingState> taskStateTableView() throws PulsarClientException {
     return client.newTableViewBuilder(stateSchema).topic(configuration.getStateTopic()).create();
   }

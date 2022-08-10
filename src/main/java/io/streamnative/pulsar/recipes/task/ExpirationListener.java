@@ -73,8 +73,7 @@ class ExpirationListener implements MessageListener<TaskProcessingState> {
     log.debug("State expires in {} milliseconds", expiryInterval); // TODO debug -> trace
     if (expiryInterval > 0) {
       log.debug("State not yet expired: {}", taskProcessingState);
-      // TODO would be nice to be able to redeliver only once at exactly the right time with
-      // redeliverLater
+      // TODO would be nice to be able to redeliver only once at exactly the right time with redeliverLater
       consumer.negativeAcknowledge(message);
     } else {
       log.debug("Deleting state: {}", taskProcessingState);
