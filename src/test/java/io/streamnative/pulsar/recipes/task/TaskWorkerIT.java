@@ -16,9 +16,9 @@
 package io.streamnative.pulsar.recipes.task;
 
 import static io.streamnative.pulsar.recipes.task.MessageAssert.assertMessage;
-import static io.streamnative.pulsar.recipes.task.State.COMPLETED;
-import static io.streamnative.pulsar.recipes.task.State.FAILED;
-import static io.streamnative.pulsar.recipes.task.State.PROCESSING;
+import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
+import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
+import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -60,7 +60,7 @@ public class TaskWorkerIT {
 
   private PulsarClient client;
   private Producer<String> taskProducer;
-  private Consumer<ProcessingState> stateConsumer;
+  private Consumer<TaskProcessingState> stateConsumer;
 
   private void createResources(String taskTopic) throws Exception {
     client =
@@ -76,7 +76,7 @@ public class TaskWorkerIT {
             .create();
     stateConsumer =
         client
-            .newConsumer(Schema.JSON(ProcessingState.class))
+            .newConsumer(Schema.JSON(TaskProcessingState.class))
             .topic(taskTopic + "-state")
             .subscriptionName(randomUUID().toString())
             .subscribe();
@@ -96,8 +96,8 @@ public class TaskWorkerIT {
 
     TaskProcessor<String, String> taskProcessor = task -> "bar";
 
-    Configuration<String, String> configuration =
-        Configuration.builder(Schema.STRING, Schema.STRING)
+    TaskWorkerConfiguration<String, String> configuration =
+        TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
             .retention(Duration.ofSeconds(1))
@@ -111,7 +111,7 @@ public class TaskWorkerIT {
     long before = clock.millis();
     String messageId = taskProducer.send("foo").toString();
 
-    Message<ProcessingState> firstMessage = nextMessage(5);
+    Message<TaskProcessingState> firstMessage = nextMessage(5);
     long now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId)
@@ -124,7 +124,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<ProcessingState> secondMessage = nextMessage(5);
+    Message<TaskProcessingState> secondMessage = nextMessage(5);
     assertMessage(secondMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -156,8 +156,8 @@ public class TaskWorkerIT {
           return "bar";
         };
 
-    Configuration<String, String> configuration =
-        Configuration.builder(Schema.STRING, Schema.STRING)
+    TaskWorkerConfiguration<String, String> configuration =
+        TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
             .retention(Duration.ofSeconds(1))
@@ -171,7 +171,7 @@ public class TaskWorkerIT {
     long before = clock.millis();
     String messageId = taskProducer.send("foo").toString();
 
-    Message<ProcessingState> firstMessage = nextMessage(5);
+    Message<TaskProcessingState> firstMessage = nextMessage(5);
     long now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId)
@@ -184,7 +184,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<ProcessingState> secondMessage = nextMessage(5);
+    Message<TaskProcessingState> secondMessage = nextMessage(5);
     assertMessage(secondMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -196,7 +196,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason("failed");
 
-    Message<ProcessingState> thirdMessage = nextMessage(5);
+    Message<TaskProcessingState> thirdMessage = nextMessage(5);
     assertMessage(thirdMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -208,7 +208,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<ProcessingState> fourthMessage = nextMessage(5);
+    Message<TaskProcessingState> fourthMessage = nextMessage(5);
     assertMessage(fourthMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -236,8 +236,8 @@ public class TaskWorkerIT {
           throw new Exception("failed");
         };
 
-    Configuration<String, String> configuration =
-        Configuration.builder(Schema.STRING, Schema.STRING)
+    TaskWorkerConfiguration<String, String> configuration =
+        TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
             .maxAttempts(1)
@@ -252,7 +252,7 @@ public class TaskWorkerIT {
     long before = clock.millis();
     String messageId = taskProducer.send("foo").toString();
 
-    Message<ProcessingState> firstMessage = nextMessage(5);
+    Message<TaskProcessingState> firstMessage = nextMessage(5);
     long now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId)
@@ -265,7 +265,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<ProcessingState> secondMessage = nextMessage(5);
+    Message<TaskProcessingState> secondMessage = nextMessage(5);
     assertMessage(secondMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -282,8 +282,8 @@ public class TaskWorkerIT {
     assertThat(nextMessage(10)).isNull();
   }
 
-  private Message<ProcessingState> nextMessage(int timeout) throws Exception {
-    Message<ProcessingState> message = stateConsumer.receive(timeout, SECONDS);
+  private Message<TaskProcessingState> nextMessage(int timeout) throws Exception {
+    Message<TaskProcessingState> message = stateConsumer.receive(timeout, SECONDS);
     if (message != null) {
       stateConsumer.acknowledge(message);
     }

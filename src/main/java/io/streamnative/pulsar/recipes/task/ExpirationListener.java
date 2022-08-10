@@ -26,26 +26,27 @@ import org.apache.pulsar.client.api.PulsarClientException;
 
 @Slf4j
 @RequiredArgsConstructor
-class ExpirationListener implements MessageListener<ProcessingState> {
-  private final StateUpdater stateUpdater;
+class ExpirationListener implements MessageListener<TaskProcessingState> {
+  private final TaskStateUpdater taskStateUpdater;
   private final Clock clock;
   private final int maxAttempts;
   private final long retentionMillis;
 
   @Override
-  public void received(Consumer<ProcessingState> consumer, Message<ProcessingState> message) {
+  public void received(
+      Consumer<TaskProcessingState> consumer, Message<TaskProcessingState> message) {
     log.debug("Received: {}", message.getValue());
     try {
-      ProcessingState processingState = message.getValue();
-      if (processingState == null) { // tombstone
+      TaskProcessingState taskProcessingState = message.getValue();
+      if (taskProcessingState == null) { // tombstone
         consumer.acknowledge(message);
       } else {
-        switch (processingState.getState()) {
+        switch (taskProcessingState.getState()) {
           case COMPLETED:
             checkExpiration(consumer, message);
             break;
           case FAILED:
-            if (processingState.getAttempts() == maxAttempts) {
+            if (taskProcessingState.getAttempts() == maxAttempts) {
               checkExpiration(consumer, message);
             } else {
               consumer.acknowledge(message);
@@ -63,20 +64,21 @@ class ExpirationListener implements MessageListener<ProcessingState> {
     }
   }
 
-  private void checkExpiration(Consumer<ProcessingState> consumer, Message<ProcessingState> message)
+  private void checkExpiration(
+      Consumer<TaskProcessingState> consumer, Message<TaskProcessingState> message)
       throws PulsarClientException {
-    ProcessingState processingState = message.getValue();
-    long expiryTimestamp = processingState.getLastUpdated() + retentionMillis;
+    TaskProcessingState taskProcessingState = message.getValue();
+    long expiryTimestamp = taskProcessingState.getLastUpdated() + retentionMillis;
     long expiryInterval = expiryTimestamp - clock.millis();
     log.debug("State expires in {} milliseconds", expiryInterval); // TOD debug -> trace
     if (expiryInterval > 0) {
-      log.debug("State not yet expired: {}", processingState);
+      log.debug("State not yet expired: {}", taskProcessingState);
       // TODO would be nice to be able to redeliver only once at exactly the right time with
       // redeliverLater
       consumer.negativeAcknowledge(message);
     } else {
-      log.debug("Deleting state: {}", processingState);
-      stateUpdater.delete(processingState);
+      log.debug("Deleting state: {}", taskProcessingState);
+      taskStateUpdater.delete(taskProcessingState);
       consumer.acknowledge(message);
     }
   }

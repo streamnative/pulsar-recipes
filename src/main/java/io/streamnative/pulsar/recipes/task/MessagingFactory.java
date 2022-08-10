@@ -29,16 +29,16 @@ import org.apache.pulsar.client.api.TableView;
 @RequiredArgsConstructor
 class MessagingFactory<T> {
   private final PulsarClient client;
-  private final Schema<ProcessingState> stateSchema;
-  private final Configuration<T, ?> configuration;
+  private final Schema<TaskProcessingState> stateSchema;
+  private final TaskWorkerConfiguration<T, ?> configuration;
 
   // TODO we're going to be consuming the state events twice - once for the tableView and once for
   // expiration
-  TableView<ProcessingState> stateTableView() throws PulsarClientException {
+  TableView<TaskProcessingState> taskStateTableView() throws PulsarClientException {
     return client.newTableViewBuilder(stateSchema).topic(configuration.getStateTopic()).create();
   }
 
-  Producer<ProcessingState> stateProducer() throws PulsarClientException {
+  Producer<TaskProcessingState> taskStateProducer() throws PulsarClientException {
     return client
         .newProducer(stateSchema)
         .topic(configuration.getStateTopic())
@@ -46,7 +46,7 @@ class MessagingFactory<T> {
         .create();
   }
 
-  Consumer<ProcessingState> stateConsumer(ExpirationListener expirationListener)
+  Consumer<TaskProcessingState> taskStateConsumer(ExpirationListener expirationListener)
       throws PulsarClientException {
     // TODO state consumer ackTimeout
     return client

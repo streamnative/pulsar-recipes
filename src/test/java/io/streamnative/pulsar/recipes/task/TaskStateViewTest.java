@@ -15,8 +15,8 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-import static io.streamnative.pulsar.recipes.task.State.NEW;
-import static io.streamnative.pulsar.recipes.task.State.PROCESSING;
+import static io.streamnative.pulsar.recipes.task.TaskState.NEW;
+import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;
 import static io.streamnative.pulsar.recipes.task.TestUtils.ENCODED_TASK;
 import static io.streamnative.pulsar.recipes.task.TestUtils.MESSAGE_ID;
 import static io.streamnative.pulsar.recipes.task.TestUtils.TASK;
@@ -35,19 +35,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class StateViewTest {
-  @Mock private TableView<ProcessingState> tableView;
+class TaskStateViewTest {
+  @Mock private TableView<TaskProcessingState> tableView;
   @Mock private Clock clock;
   @Mock private Message<String> message;
   @Mock private MessageId messageId;
-  private StateView<String> stateView;
+  private TaskStateView<String> stateView;
   private final Schema<String> taskSchema = Schema.STRING;
 
   @BeforeEach
   void beforeEach() {
     when(message.getMessageId()).thenReturn(messageId);
     when(messageId.toString()).thenReturn(MESSAGE_ID);
-    stateView = new StateView<>(tableView, clock, taskSchema);
+    stateView = new TaskStateView<>(tableView, clock, taskSchema);
   }
 
   @Test
@@ -58,15 +58,15 @@ class StateViewTest {
     when(tableView.get(MESSAGE_ID)).thenReturn(null);
 
     assertThat(stateView.get(message))
-        .isEqualTo(new ProcessingState(MESSAGE_ID, NEW, 0L, 0L, 0, ENCODED_TASK, null, null));
+        .isEqualTo(new TaskProcessingState(MESSAGE_ID, NEW, 0L, 0L, 0, ENCODED_TASK, null, null));
   }
 
   @Test
   void previouslySeenMessageId() {
-    ProcessingState processingState =
-        new ProcessingState(MESSAGE_ID, PROCESSING, 0L, 10L, 1, ENCODED_TASK, null, null);
-    when(tableView.get(MESSAGE_ID)).thenReturn(processingState);
+    TaskProcessingState taskProcessingState =
+        new TaskProcessingState(MESSAGE_ID, PROCESSING, 0L, 10L, 1, ENCODED_TASK, null, null);
+    when(tableView.get(MESSAGE_ID)).thenReturn(taskProcessingState);
 
-    assertThat(stateView.get(message)).isEqualTo(processingState);
+    assertThat(stateView.get(message)).isEqualTo(taskProcessingState);
   }
 }

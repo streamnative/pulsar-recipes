@@ -15,7 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-import static io.streamnative.pulsar.recipes.task.State.UNKNOWN;
+import static io.streamnative.pulsar.recipes.task.TaskState.UNKNOWN;
 import static io.streamnative.pulsar.recipes.task.TestUtils.ENCODED_RESULT;
 import static io.streamnative.pulsar.recipes.task.TestUtils.ENCODED_TASK;
 import static io.streamnative.pulsar.recipes.task.TestUtils.FAILURE_REASON;
@@ -51,15 +51,15 @@ class TaskListenerTest {
   private static final int MAX_ATTEMPTS = 2;
   private static final long KEEP_ALIVE_INTERVAL_MILLIS = 10L;
 
-  @Mock private StateView<String> stateView;
-  @Mock private StateUpdater stateUpdater;
+  @Mock private TaskStateView<String> stateView;
+  @Mock private TaskStateUpdater stateUpdater;
   @Mock private TaskHandler<String, String> taskHandler;
   @Mock private Clock clock;
   @Mock private Consumer<String> consumer;
   @Mock private Message<String> message;
   private TaskListener<String, String> taskListener;
   private final Schema<String> resultSchema = Schema.STRING;
-  private final ProcessingState processingState = processingState(1);
+  private final TaskProcessingState taskProcessingState = processingState(1);
 
   @BeforeEach
   void beforeEach() {
@@ -85,13 +85,13 @@ class TaskListenerTest {
     taskListener.received(consumer, message);
 
     InOrder inOrder = inOrder(stateUpdater, consumer);
-    inOrder.verify(stateUpdater).update(processingState.keepAlive(1L));
-    inOrder.verify(stateUpdater).update(processingState.complete(2L, ENCODED_RESULT));
+    inOrder.verify(stateUpdater).update(taskProcessingState.keepAlive(1L));
+    inOrder.verify(stateUpdater).update(taskProcessingState.complete(2L, ENCODED_RESULT));
     inOrder.verify(consumer).acknowledge(message);
 
     KeepAlive keepAlive = keepAliveCaptor.getValue();
     keepAlive.update();
-    verify(stateUpdater).update(processingState.keepAlive(3L));
+    verify(stateUpdater).update(taskProcessingState.keepAlive(3L));
   }
 
   @Test
@@ -105,8 +105,8 @@ class TaskListenerTest {
     taskListener.received(consumer, message);
 
     InOrder inOrder = inOrder(stateUpdater, consumer);
-    inOrder.verify(stateUpdater).update(processingState.keepAlive(1L));
-    inOrder.verify(stateUpdater).update(processingState.fail(2L, FAILURE_REASON));
+    inOrder.verify(stateUpdater).update(taskProcessingState.keepAlive(1L));
+    inOrder.verify(stateUpdater).update(taskProcessingState.fail(2L, FAILURE_REASON));
     inOrder.verify(consumer).acknowledge(message);
   }
 
@@ -188,7 +188,8 @@ class TaskListenerTest {
   @Test
   void unexpectedState() throws Exception {
     when(stateView.get(message))
-        .thenReturn(new ProcessingState(MESSAGE_ID, UNKNOWN, 0L, 0L, 2, ENCODED_TASK, null, null));
+        .thenReturn(
+            new TaskProcessingState(MESSAGE_ID, UNKNOWN, 0L, 0L, 2, ENCODED_TASK, null, null));
     when(clock.millis()).thenReturn(1L);
 
     taskListener.received(consumer, message);

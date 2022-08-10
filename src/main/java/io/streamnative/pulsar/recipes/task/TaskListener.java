@@ -28,8 +28,8 @@ import org.apache.pulsar.client.api.Schema;
 @Slf4j
 @RequiredArgsConstructor
 public class TaskListener<T, R> implements MessageListener<T> {
-  private final StateView<T> stateView;
-  private final StateUpdater stateUpdater;
+  private final TaskStateView<T> taskStateView;
+  private final TaskStateUpdater taskStateUpdater;
   private final TaskHandler<T, R> taskHandler;
   private final Clock clock;
   private final Schema<R> resultSchema;
@@ -39,69 +39,72 @@ public class TaskListener<T, R> implements MessageListener<T> {
   @Override
   public void received(Consumer<T> consumer, Message<T> message) {
     log.debug("Received: {}", message.getMessageId());
-    ProcessingState processingState = stateView.get(message);
+    TaskProcessingState taskProcessingState = taskStateView.get(message);
     try {
-      switch (processingState.getState()) {
+      switch (taskProcessingState.getState()) {
         case NEW:
-          handleTask(consumer, message, processingState);
+          handleTask(consumer, message, taskProcessingState);
           break;
         case PROCESSING:
-          handleProcessing(consumer, message, processingState);
+          handleProcessing(consumer, message, taskProcessingState);
           break;
         case COMPLETED:
           consumer.acknowledge(message);
           break;
         case FAILED:
-          handleFailed(consumer, message, processingState);
+          handleFailed(consumer, message, taskProcessingState);
           break;
         default:
-          log.error("Unexpected state: {}", processingState);
+          log.error("Unexpected state: {}", taskProcessingState);
           handleError(
               consumer,
               message,
-              processingState,
-              "Unexpected state: " + processingState.getState());
+              taskProcessingState,
+              "Unexpected state: " + taskProcessingState.getState());
           break;
       }
     } catch (Throwable t) {
-      log.error("Error processing task: {}", processingState, t);
+      log.error("Error processing task: {}", taskProcessingState, t);
       consumer.negativeAcknowledge(message);
     }
   }
 
-  private void handleTask(Consumer<T> consumer, Message<T> message, ProcessingState processingState)
+  private void handleTask(
+      Consumer<T> consumer, Message<T> message, TaskProcessingState taskProcessingState)
       throws PulsarClientException {
-    ProcessingState newProcessingState = processingState.process(clock.millis());
-    stateUpdater.update(newProcessingState);
-    ProcessingState keepAliveState = newProcessingState;
+    TaskProcessingState updatedTaskProcessingState = taskProcessingState.process(clock.millis());
+    taskStateUpdater.update(updatedTaskProcessingState);
+    TaskProcessingState keepAliveState = updatedTaskProcessingState;
     try {
       log.debug("Task processing for message {}", message.getMessageId());
       R result =
           taskHandler.handleTask(
               message.getValue(),
-              () -> stateUpdater.update(keepAliveState.keepAlive(clock.millis())));
+              () -> taskStateUpdater.update(keepAliveState.keepAlive(clock.millis())));
       log.debug("Task processed for message {}", message.getMessageId());
       byte[] encodedResult = resultSchema.encode(result);
-      newProcessingState = newProcessingState.complete(clock.millis(), encodedResult);
-      stateUpdater.update(newProcessingState);
+      updatedTaskProcessingState =
+          updatedTaskProcessingState.complete(clock.millis(), encodedResult);
+      taskStateUpdater.update(updatedTaskProcessingState);
       consumer.acknowledge(message);
     } catch (TaskException e) {
-      log.error("Error while handling task: {}", newProcessingState, e);
-      handleError(consumer, message, newProcessingState, e.getCause().getMessage());
+      log.error("Error while handling task: {}", updatedTaskProcessingState, e);
+      handleError(consumer, message, updatedTaskProcessingState, e.getCause().getMessage());
     } catch (Exception e) {
-      log.error("Error handling task result: {}", newProcessingState, e);
+      log.error("Error handling task result: {}", updatedTaskProcessingState, e);
     }
   }
 
   private void handleProcessing(
-      Consumer<T> consumer, Message<T> message, ProcessingState processingState)
+      Consumer<T> consumer, Message<T> message, TaskProcessingState taskProcessingState)
       throws PulsarClientException {
-    long lastUpdatedAgeMillis = clock.millis() - processingState.getLastUpdated();
+    long lastUpdatedAgeMillis = clock.millis() - taskProcessingState.getLastUpdated();
     if (lastUpdatedAgeMillis > keepAliveIntervalMillis * 2) {
-      if (processingState.getAttempts() < maxAttempts) {
-        handleTask(consumer, message, processingState);
+      if (taskProcessingState.getAttempts() < maxAttempts) {
+        handleTask(consumer, message, taskProcessingState);
       } else {
-        stateUpdater.update(processingState.fail(clock.millis(), "Task processing is stale"));
+        taskStateUpdater.update(
+            taskProcessingState.fail(clock.millis(), "Task processing is stale"));
         consumer.acknowledge(message);
       }
     } else {
@@ -110,10 +113,10 @@ public class TaskListener<T, R> implements MessageListener<T> {
   }
 
   private void handleFailed(
-      Consumer<T> consumer, Message<T> message, ProcessingState processingState)
+      Consumer<T> consumer, Message<T> message, TaskProcessingState taskProcessingState)
       throws PulsarClientException {
-    if (processingState.getAttempts() < maxAttempts) {
-      handleTask(consumer, message, processingState);
+    if (taskProcessingState.getAttempts() < maxAttempts) {
+      handleTask(consumer, message, taskProcessingState);
     } else {
       consumer.acknowledge(message);
     }
@@ -122,11 +125,12 @@ public class TaskListener<T, R> implements MessageListener<T> {
   private void handleError(
       Consumer<T> consumer,
       Message<T> message,
-      ProcessingState processingState,
+      TaskProcessingState taskProcessingState,
       String failureReason)
       throws PulsarClientException {
-    ProcessingState failedState = processingState.fail(clock.millis(), failureReason);
-    stateUpdater.update(failedState);
-    handleFailed(consumer, message, failedState);
+    TaskProcessingState failedTaskProccessingState =
+        taskProcessingState.fail(clock.millis(), failureReason);
+    taskStateUpdater.update(failedTaskProccessingState);
+    handleFailed(consumer, message, failedTaskProccessingState);
   }
 }

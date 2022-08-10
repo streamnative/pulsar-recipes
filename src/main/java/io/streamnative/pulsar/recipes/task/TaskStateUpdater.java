@@ -23,26 +23,28 @@ import org.apache.pulsar.client.api.PulsarClientException;
 
 @Slf4j
 @RequiredArgsConstructor
-class StateUpdater {
-  private final Producer<ProcessingState> producer;
+class TaskStateUpdater {
+  private final Producer<TaskProcessingState> producer;
 
-  void update(ProcessingState processingState) throws PulsarClientException {
-    send(processingState, false);
+  void update(TaskProcessingState taskProcessingState) throws PulsarClientException {
+    send(taskProcessingState, false);
     log.debug(
-        "Updated state for {} to {}", processingState.getMessageId(), processingState.getState());
+        "Updated state for {} to {}",
+        taskProcessingState.getMessageId(),
+        taskProcessingState.getState());
   }
 
-  void delete(ProcessingState processingState) throws PulsarClientException {
-    send(processingState, true);
-    log.debug("Deleted state for {}", processingState.getMessageId());
+  void delete(TaskProcessingState taskProcessingState) throws PulsarClientException {
+    send(taskProcessingState, true);
+    log.debug("Deleted state for {}", taskProcessingState.getMessageId());
   }
 
-  private void send(ProcessingState processingState, boolean tombstone)
+  private void send(TaskProcessingState taskProcessingState, boolean tombstone)
       throws PulsarClientException {
     producer
         .newMessage()
-        .key(processingState.getMessageId())
-        .value(tombstone ? null : processingState)
+        .key(taskProcessingState.getMessageId())
+        .value(tombstone ? null : taskProcessingState)
         .send();
   }
 }

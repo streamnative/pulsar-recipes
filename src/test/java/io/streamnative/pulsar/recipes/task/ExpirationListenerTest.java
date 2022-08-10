@@ -42,10 +42,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class ExpirationListenerTest {
   private static final int MAX_ATTEMPTS = 2;
   private static final long RETENTION_MILLIS = 10L;
-  @Mock private StateUpdater stateUpdater;
+  @Mock private TaskStateUpdater stateUpdater;
   @Mock private Clock clock;
-  @Mock private Consumer<ProcessingState> consumer;
-  @Mock private Message<ProcessingState> message;
+  @Mock private Consumer<TaskProcessingState> consumer;
+  @Mock private Message<TaskProcessingState> message;
   private ExpirationListener expirationListener;
 
   @BeforeEach
@@ -56,36 +56,36 @@ class ExpirationListenerTest {
 
   @ParameterizedTest
   @MethodSource("nonTerminalProcessingStates")
-  void nonTerminalProcessingState(ProcessingState processingState) throws Exception {
-    when(message.getValue()).thenReturn(processingState);
+  void nonTerminalProcessingState(TaskProcessingState taskProcessingState) throws Exception {
+    when(message.getValue()).thenReturn(taskProcessingState);
 
     expirationListener.received(consumer, message);
 
     verify(consumer).acknowledge(message);
-    verify(stateUpdater, never()).delete(processingState);
+    verify(stateUpdater, never()).delete(taskProcessingState);
   }
 
   @ParameterizedTest
   @MethodSource("terminalProcessingStates")
-  void nonExpiredTerminalProcessingState(ProcessingState processingState) throws Exception {
-    when(message.getValue()).thenReturn(processingState);
+  void nonExpiredTerminalProcessingState(TaskProcessingState taskProcessingState) throws Exception {
+    when(message.getValue()).thenReturn(taskProcessingState);
     when(clock.millis()).thenReturn(RETENTION_MILLIS - 1L);
 
     expirationListener.received(consumer, message);
 
     verify(consumer).negativeAcknowledge(message);
-    verify(stateUpdater, never()).delete(processingState);
+    verify(stateUpdater, never()).delete(taskProcessingState);
   }
 
   @ParameterizedTest
   @MethodSource("terminalProcessingStates")
-  void expiredTerminalProcessingState(ProcessingState processingState) throws Exception {
-    when(message.getValue()).thenReturn(processingState);
+  void expiredTerminalProcessingState(TaskProcessingState taskProcessingState) throws Exception {
+    when(message.getValue()).thenReturn(taskProcessingState);
     when(clock.millis()).thenReturn(RETENTION_MILLIS + 1L);
 
     expirationListener.received(consumer, message);
 
-    verify(stateUpdater).delete(processingState);
+    verify(stateUpdater).delete(taskProcessingState);
   }
 
   @Test
@@ -95,11 +95,11 @@ class ExpirationListenerTest {
     assertThatNoException().isThrownBy(() -> expirationListener.received(consumer, message));
   }
 
-  private static Stream<ProcessingState> nonTerminalProcessingStates() {
+  private static Stream<TaskProcessingState> nonTerminalProcessingStates() {
     return Stream.of(null, newState(), processingState(1), failedState(MAX_ATTEMPTS - 1));
   }
 
-  private static Stream<ProcessingState> terminalProcessingStates() {
+  private static Stream<TaskProcessingState> terminalProcessingStates() {
     return Stream.of(completedState(1), failedState(MAX_ATTEMPTS));
   }
 }

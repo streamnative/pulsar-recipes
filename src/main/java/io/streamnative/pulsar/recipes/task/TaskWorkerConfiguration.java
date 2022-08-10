@@ -29,7 +29,7 @@ import org.apache.pulsar.client.api.Schema;
 
 @Getter
 @AllArgsConstructor(access = PRIVATE)
-public class Configuration<T, R> {
+public class TaskWorkerConfiguration<T, R> {
   private final Schema<T> taskSchema;
   private final Schema<R> resultSchema;
   private final String taskTopic;
@@ -186,13 +186,13 @@ public class Configuration<T, R> {
       }
     }
 
-    public Configuration<T, R> build() {
+    public TaskWorkerConfiguration<T, R> build() {
       requireNonNull(taskTopic);
       requireNonNull(subscription);
 
       String stateTopic = this.stateTopic == null ? taskTopic + "-state" : this.stateTopic;
 
-      return new Configuration<>(
+      return new TaskWorkerConfiguration<>(
           taskSchema,
           resultSchema,
           taskTopic,

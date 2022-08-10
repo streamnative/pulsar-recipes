@@ -15,10 +15,10 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-import static io.streamnative.pulsar.recipes.task.State.COMPLETED;
-import static io.streamnative.pulsar.recipes.task.State.FAILED;
-import static io.streamnative.pulsar.recipes.task.State.NEW;
-import static io.streamnative.pulsar.recipes.task.State.PROCESSING;
+import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
+import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
+import static io.streamnative.pulsar.recipes.task.TaskState.NEW;
+import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;
 import static lombok.AccessLevel.PRIVATE;
 
 import lombok.NoArgsConstructor;
@@ -33,20 +33,21 @@ final class TestUtils {
 
   static final String FAILURE_REASON = "failureReason";
 
-  static ProcessingState newState() {
-    return new ProcessingState(MESSAGE_ID, NEW, 0, 0, 0, ENCODED_TASK, null, null);
+  static TaskProcessingState newState() {
+    return new TaskProcessingState(MESSAGE_ID, NEW, 0, 0, 0, ENCODED_TASK, null, null);
   }
 
-  static ProcessingState processingState(int attempts) {
-    return new ProcessingState(MESSAGE_ID, PROCESSING, 0, 0, attempts, ENCODED_TASK, null, null);
+  static TaskProcessingState processingState(int attempts) {
+    return new TaskProcessingState(
+        MESSAGE_ID, PROCESSING, 0, 0, attempts, ENCODED_TASK, null, null);
   }
 
-  static ProcessingState completedState(int attempts) {
-    return new ProcessingState(
+  static TaskProcessingState completedState(int attempts) {
+    return new TaskProcessingState(
         MESSAGE_ID, COMPLETED, 0, 0, attempts, ENCODED_TASK, ENCODED_RESULT, null);
   }
 
-  static ProcessingState failedState(int attempts) {
-    return new ProcessingState(MESSAGE_ID, FAILED, 0, 0, attempts, ENCODED_TASK, null, null);
+  static TaskProcessingState failedState(int attempts) {
+    return new TaskProcessingState(MESSAGE_ID, FAILED, 0, 0, attempts, ENCODED_TASK, null, null);
   }
 }

@@ -39,9 +39,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MessagingFactoryTest {
   @Mock private PulsarClient client;
-  private final Schema<ProcessingState> stateSchema = Schema.JSON(ProcessingState.class);
-  private final Configuration<String, String> configuration =
-      Configuration.builder(Schema.STRING, Schema.STRING)
+  private final Schema<TaskProcessingState> stateSchema = Schema.JSON(TaskProcessingState.class);
+  private final TaskWorkerConfiguration<String, String> configuration =
+      TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
           .taskTopic("tasks")
           .subscription("subscription")
           .retention(Duration.ofSeconds(1))
@@ -56,36 +56,38 @@ class MessagingFactoryTest {
 
   @Test
   void stateTableView(
-      @Mock TableViewBuilder<ProcessingState> builder, @Mock TableView<ProcessingState> tableView)
+      @Mock TableViewBuilder<TaskProcessingState> builder,
+      @Mock TableView<TaskProcessingState> tableView)
       throws PulsarClientException {
     when(client.newTableViewBuilder(stateSchema)).thenReturn(builder);
     when(builder.topic(configuration.getStateTopic())).thenReturn(builder);
     when(builder.create()).thenReturn(tableView);
 
-    TableView<ProcessingState> result = messagingFactory.stateTableView();
+    TableView<TaskProcessingState> result = messagingFactory.taskStateTableView();
 
     assertThat(result).isSameAs(tableView);
   }
 
   @Test
   void stateProducer(
-      @Mock ProducerBuilder<ProcessingState> builder, @Mock Producer<ProcessingState> producer)
+      @Mock ProducerBuilder<TaskProcessingState> builder,
+      @Mock Producer<TaskProcessingState> producer)
       throws PulsarClientException {
     when(client.newProducer(stateSchema)).thenReturn(builder);
     when(builder.topic(configuration.getStateTopic())).thenReturn(builder);
     when(builder.enableBatching(false)).thenReturn(builder);
     when(builder.create()).thenReturn(producer);
 
-    Producer<ProcessingState> result = messagingFactory.stateProducer();
+    Producer<TaskProcessingState> result = messagingFactory.taskStateProducer();
 
     assertThat(result).isSameAs(producer);
   }
 
   @Test
   void stateConsumer(
-      @Mock ConsumerBuilder<ProcessingState> builder,
+      @Mock ConsumerBuilder<TaskProcessingState> builder,
       @Mock ExpirationListener listener,
-      @Mock Consumer<ProcessingState> consumer)
+      @Mock Consumer<TaskProcessingState> consumer)
       throws PulsarClientException {
     when(client.newConsumer(stateSchema)).thenReturn(builder);
     when(builder.topic(configuration.getStateTopic())).thenReturn(builder);
@@ -97,7 +99,7 @@ class MessagingFactoryTest {
     when(builder.messageListener(listener)).thenReturn(builder);
     when(builder.subscribe()).thenReturn(consumer);
 
-    Consumer<ProcessingState> result = messagingFactory.stateConsumer(listener);
+    Consumer<TaskProcessingState> result = messagingFactory.taskStateConsumer(listener);
 
     assertThat(result).isSameAs(consumer);
   }

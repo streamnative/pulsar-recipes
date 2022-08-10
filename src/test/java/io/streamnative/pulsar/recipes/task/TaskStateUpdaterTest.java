@@ -34,22 +34,22 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class StateUpdaterTest {
-  @Mock private Producer<ProcessingState> producer;
-  @Mock private TypedMessageBuilder<ProcessingState> typedMessageBuilder;
-  @InjectMocks private StateUpdater stateUpdater;
+class TaskStateUpdaterTest {
+  @Mock private Producer<TaskProcessingState> producer;
+  @Mock private TypedMessageBuilder<TaskProcessingState> typedMessageBuilder;
+  @InjectMocks private TaskStateUpdater stateUpdater;
 
   @ParameterizedTest
   @MethodSource("methods")
   void test(Method method, boolean nullValue) throws PulsarClientException {
-    ProcessingState processingState = processingState(1);
-    ProcessingState value = nullValue ? null : processingState;
+    TaskProcessingState taskProcessingState = processingState(1);
+    TaskProcessingState value = nullValue ? null : taskProcessingState;
 
     when(producer.newMessage()).thenReturn(typedMessageBuilder);
     when(typedMessageBuilder.key(MESSAGE_ID)).thenReturn(typedMessageBuilder);
     when(typedMessageBuilder.value(value)).thenReturn(typedMessageBuilder);
 
-    method.invoke(stateUpdater, processingState);
+    method.invoke(stateUpdater, taskProcessingState);
 
     InOrder inOrder = inOrder(typedMessageBuilder);
     inOrder.verify(typedMessageBuilder).key(MESSAGE_ID);
@@ -59,12 +59,12 @@ class StateUpdaterTest {
 
   private static Stream<Arguments> methods() {
     return Stream.of(
-        Arguments.of((Method) StateUpdater::update, false),
-        Arguments.of((Method) StateUpdater::delete, true));
+        Arguments.of((Method) TaskStateUpdater::update, false),
+        Arguments.of((Method) TaskStateUpdater::delete, true));
   }
 
   interface Method {
-    void invoke(StateUpdater stateUpdater, ProcessingState processingState)
+    void invoke(TaskStateUpdater stateUpdater, TaskProcessingState processingState)
         throws PulsarClientException;
   }
 }

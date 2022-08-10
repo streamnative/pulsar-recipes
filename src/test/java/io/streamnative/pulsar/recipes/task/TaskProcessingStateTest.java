@@ -15,10 +15,10 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-import static io.streamnative.pulsar.recipes.task.State.COMPLETED;
-import static io.streamnative.pulsar.recipes.task.State.FAILED;
-import static io.streamnative.pulsar.recipes.task.State.NEW;
-import static io.streamnative.pulsar.recipes.task.State.PROCESSING;
+import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
+import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
+import static io.streamnative.pulsar.recipes.task.TaskState.NEW;
+import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;
 import static io.streamnative.pulsar.recipes.task.TestUtils.ENCODED_RESULT;
 import static io.streamnative.pulsar.recipes.task.TestUtils.ENCODED_TASK;
 import static io.streamnative.pulsar.recipes.task.TestUtils.FAILURE_REASON;
@@ -28,35 +28,37 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.apache.pulsar.client.api.Schema;
 import org.junit.jupiter.api.Test;
 
-class ProcessingStateTest {
+class TaskProcessingStateTest {
   private final long now = 0L;
   private final long newNow = 1L;
-  private final ProcessingState newProcessingState =
-      new ProcessingState(MESSAGE_ID, NEW, now, now, 0, ENCODED_TASK, null, null);
+  private final TaskProcessingState newProcessingState =
+      new TaskProcessingState(MESSAGE_ID, NEW, now, now, 0, ENCODED_TASK, null, null);
 
   @Test
   void ofShouldCreateNewState() {
-    assertThat(ProcessingState.of(MESSAGE_ID, now, ENCODED_TASK)).isEqualTo(newProcessingState);
+    assertThat(TaskProcessingState.of(MESSAGE_ID, now, ENCODED_TASK)).isEqualTo(newProcessingState);
   }
 
   @Test
   void processShouldTransitionToProcessing() {
     assertThat(newProcessingState.process(newNow))
         .isEqualTo(
-            new ProcessingState(MESSAGE_ID, PROCESSING, now, newNow, 1, ENCODED_TASK, null, null));
+            new TaskProcessingState(
+                MESSAGE_ID, PROCESSING, now, newNow, 1, ENCODED_TASK, null, null));
   }
 
   @Test
   void keepALiveShouldUpdateLastUpdated() {
     assertThat(newProcessingState.keepAlive(newNow))
-        .isEqualTo(new ProcessingState(MESSAGE_ID, NEW, now, newNow, 0, ENCODED_TASK, null, null));
+        .isEqualTo(
+            new TaskProcessingState(MESSAGE_ID, NEW, now, newNow, 0, ENCODED_TASK, null, null));
   }
 
   @Test
   void completeShouldTransitionToCompleted() {
     assertThat(newProcessingState.complete(newNow, ENCODED_RESULT))
         .isEqualTo(
-            new ProcessingState(
+            new TaskProcessingState(
                 MESSAGE_ID, COMPLETED, now, newNow, 0, ENCODED_TASK, ENCODED_RESULT, null));
   }
 
@@ -64,18 +66,18 @@ class ProcessingStateTest {
   void failShouldTransitionToFailed() {
     assertThat(newProcessingState.fail(newNow, FAILURE_REASON))
         .isEqualTo(
-            new ProcessingState(
+            new TaskProcessingState(
                 MESSAGE_ID, FAILED, now, newNow, 0, ENCODED_TASK, null, FAILURE_REASON));
   }
 
   @Test
   void serde() {
-    ProcessingState processingState =
-        new ProcessingState(
+    TaskProcessingState taskProcessingState =
+        new TaskProcessingState(
             MESSAGE_ID, COMPLETED, now, newNow, 0, ENCODED_TASK, ENCODED_RESULT, FAILURE_REASON);
-    Schema<ProcessingState> schema = Schema.JSON(ProcessingState.class);
-    byte[] bytes = schema.encode(processingState);
-    ProcessingState result = schema.decode(bytes);
-    assertThat(result).isEqualTo(processingState);
+    Schema<TaskProcessingState> schema = Schema.JSON(TaskProcessingState.class);
+    byte[] bytes = schema.encode(taskProcessingState);
+    TaskProcessingState result = schema.decode(bytes);
+    assertThat(result).isEqualTo(taskProcessingState);
   }
 }

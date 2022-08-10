@@ -19,7 +19,7 @@ import static java.time.Duration.ZERO;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
-import io.streamnative.pulsar.recipes.task.Configuration.Builder;
+import io.streamnative.pulsar.recipes.task.TaskWorkerConfiguration.Builder;
 import java.time.Duration;
 import java.util.function.UnaryOperator;
 import java.util.stream.Stream;
@@ -29,13 +29,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-class ConfigurationTest {
+class TaskWorkerConfigurationTest {
   private static final Duration ONE_SECOND = Duration.ofSeconds(1);
 
   @Test
   void getters() {
-    Configuration<String, Integer> configuration =
-        Configuration.builder(Schema.STRING, Schema.INT32)
+    TaskWorkerConfiguration<String, Integer> configuration =
+        TaskWorkerConfiguration.builder(Schema.STRING, Schema.INT32)
             .taskTopic("tasks")
             .subscription("subscription")
             .build();
@@ -56,7 +56,7 @@ class ConfigurationTest {
   @MethodSource("validationParameters")
   void validation(UnaryOperator<Builder<?, ?>> function, boolean valid) {
     Builder<String, String> builder =
-        Configuration.builder(Schema.STRING, Schema.STRING)
+        TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic("tasks")
             .subscription("subscription");
     try {

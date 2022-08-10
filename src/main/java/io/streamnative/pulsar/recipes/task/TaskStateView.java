@@ -23,18 +23,18 @@ import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.TableView;
 
 @RequiredArgsConstructor
-class StateView<T> {
-  private final TableView<ProcessingState> tableView;
+class TaskStateView<T> {
+  private final TableView<TaskProcessingState> tableView;
   private final Clock clock;
   private final Schema<T> taskSchema;
 
-  ProcessingState get(Message<T> message) {
+  TaskProcessingState get(Message<T> message) {
     String messageId = message.getMessageId().toString();
-    ProcessingState processingState = tableView.get(messageId);
-    if (processingState == null) {
+    TaskProcessingState taskProcessingState = tableView.get(messageId);
+    if (taskProcessingState == null) {
       byte[] encodedTask = taskSchema.encode(message.getValue());
-      return ProcessingState.of(messageId, clock.millis(), encodedTask);
+      return TaskProcessingState.of(messageId, clock.millis(), encodedTask);
     }
-    return processingState;
+    return taskProcessingState;
   }
 }

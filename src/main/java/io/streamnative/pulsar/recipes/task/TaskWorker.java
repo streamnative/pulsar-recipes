@@ -43,29 +43,32 @@ public class TaskWorker implements AutoCloseable {
   // TODO main method & CLI?
 
   public static <T, R> TaskWorker create(
-      PulsarClient client, TaskProcessor<T, R> taskProcessor, Configuration<T, R> configuration)
+      PulsarClient client,
+      TaskProcessor<T, R> taskProcessor,
+      TaskWorkerConfiguration<T, R> configuration)
       throws PulsarClientException {
     ExecutorService executor = newSingleThreadExecutor();
     Clock clock = systemUTC();
 
-    Schema<ProcessingState> stateSchema = Schema.JSON(ProcessingState.class);
+    Schema<TaskProcessingState> stateSchema = Schema.JSON(TaskProcessingState.class);
 
     MessagingFactory<T> factory = new MessagingFactory<>(client, stateSchema, configuration);
     List<AutoCloseable> closeables = new ArrayList<>();
 
-    Producer<ProcessingState> stateProducer = factory.stateProducer();
-    closeables.add(stateProducer);
-    StateUpdater stateUpdater = new StateUpdater(stateProducer);
+    Producer<TaskProcessingState> taskStateProducer = factory.taskStateProducer();
+    closeables.add(taskStateProducer);
+    TaskStateUpdater stateUpdater = new TaskStateUpdater(taskStateProducer);
 
-    TableView<ProcessingState> stateTableView = factory.stateTableView();
-    closeables.add(stateTableView);
-    StateView<T> stateView = new StateView<>(stateTableView, clock, configuration.getTaskSchema());
+    TableView<TaskProcessingState> taskStateTableView = factory.taskStateTableView();
+    closeables.add(taskStateTableView);
+    TaskStateView<T> taskStateView =
+        new TaskStateView<>(taskStateTableView, clock, configuration.getTaskSchema());
 
     TaskHandler<T, R> taskHandler =
         new TaskHandler<>(executor, taskProcessor, configuration.getKeepAliveInterval().toMillis());
     TaskListener<T, R> taskListener =
         new TaskListener<>(
-            stateView,
+            taskStateView,
             stateUpdater,
             taskHandler,
             clock,
@@ -81,8 +84,8 @@ public class TaskWorker implements AutoCloseable {
             clock,
             configuration.getMaxAttempts(),
             configuration.getRetention().toMillis());
-    Consumer<ProcessingState> stateConsumer = factory.stateConsumer(expirationListener);
-    closeables.add(stateConsumer);
+    Consumer<TaskProcessingState> taskStateConsumer = factory.taskStateConsumer(expirationListener);
+    closeables.add(taskStateConsumer);
 
     return new TaskWorker(executor, closeables, configuration.getShutdownTimeout().toMillis());
   }

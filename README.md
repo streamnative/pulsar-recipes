@@ -40,7 +40,7 @@ Producer<Task> producer = client.newProducer(Schema.JSON(Task.class))
     .enableBatching(false)
     .create();
 
-Consumer<ProcessingState> consumer = client.newConsumer(Schema.JSON(ProcessingState.class))
+Consumer<TaskProcessingState> consumer = client.newConsumer(Schema.JSON(TaskProcessingState.class))
     .topic("tasks-state")
     .subscriptionName("results-subscription")
     .subscribe();
@@ -50,11 +50,11 @@ String messageId = producer.send(new Task("Dave")).toString();
 Schema<Result> schema = Schema.JSON(Result.class);
 
 while(true) {
-    Message<ProcessingState> message = consumer.receive();
-    ProcessingState processingState = message.getValue();
-    if (processingState.getMessageId().equals(messageId)
-        && processingState.getState() == State.COMPLETED) {
-        Result result = schema.decode(processingState.getResult());
+    Message<TaskProcessingState> message = consumer.receive();
+    TaskProcessingState taskProcessingState = message.getValue();
+    if (taskProcessingState.getMessageId().equals(messageId)
+        && taskProcessingState.getState() == State.COMPLETED) {
+        Result result = schema.decode(taskProcessingState.getResult());
     }
 }
 ```
@@ -68,7 +68,8 @@ PulsarClient client = PulsarClient.builder()
 
 TaskProcessor<Task, Result> taskProcessor = task -> new Result("Hello " + task.getName());
 
-Configuration<Task, Result> configuration = Configuration.builder(Schema.JSON(Task.class), Schema.JSON(Result.class))
+TaskWorkerConfiguration<Task, Result> configuration = TaskWorkerConfiguration
+    .builder(Schema.JSON(Task.class), Schema.JSON(Result.class))
     .taskTopic("tasks")
     .subscription("subscription")
     .build();

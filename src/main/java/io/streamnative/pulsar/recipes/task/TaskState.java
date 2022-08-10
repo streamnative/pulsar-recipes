@@ -15,7 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-public enum State {
+public enum TaskState {
   NEW,
   PROCESSING,
   FAILED,

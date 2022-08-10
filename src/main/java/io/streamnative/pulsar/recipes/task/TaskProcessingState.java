@@ -15,19 +15,19 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-import static io.streamnative.pulsar.recipes.task.State.COMPLETED;
-import static io.streamnative.pulsar.recipes.task.State.FAILED;
-import static io.streamnative.pulsar.recipes.task.State.NEW;
-import static io.streamnative.pulsar.recipes.task.State.PROCESSING;
+import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
+import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
+import static io.streamnative.pulsar.recipes.task.TaskState.NEW;
+import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;
 
 import lombok.ToString;
 import lombok.Value;
 
 @Value
 @ToString(exclude = {"task", "result"}) // task and result may be sensitive
-public class ProcessingState {
+public class TaskProcessingState {
   String messageId;
-  State state;
+  TaskState state;
   long created;
   long lastUpdated;
   int attempts;
@@ -35,29 +35,29 @@ public class ProcessingState {
   byte[] result;
   String failureReason;
 
-  public static ProcessingState of(String messageId, long now, byte[] task) {
-    return new ProcessingState(messageId, NEW, now, now, 0, task, null, null);
+  public static TaskProcessingState of(String messageId, long now, byte[] task) {
+    return new TaskProcessingState(messageId, NEW, now, now, 0, task, null, null);
   }
 
-  private ProcessingState transition(
-      State state, long lastUpdated, int attempts, byte[] result, String failureReason) {
-    return new ProcessingState(
+  private TaskProcessingState transition(
+      TaskState state, long lastUpdated, int attempts, byte[] result, String failureReason) {
+    return new TaskProcessingState(
         messageId, state, created, lastUpdated, attempts, task, result, failureReason);
   }
 
-  public ProcessingState process(long now) {
+  public TaskProcessingState process(long now) {
     return transition(PROCESSING, now, attempts + 1, result, null);
   }
 
-  public ProcessingState keepAlive(long now) {
+  public TaskProcessingState keepAlive(long now) {
     return transition(state, now, attempts, result, failureReason);
   }
 
-  public ProcessingState complete(long now, byte[] result) {
+  public TaskProcessingState complete(long now, byte[] result) {
     return transition(COMPLETED, now, attempts, result, failureReason);
   }
 
-  public ProcessingState fail(long now, String failureReason) {
+  public TaskProcessingState fail(long now, String failureReason) {
     return transition(FAILED, now, attempts, result, failureReason);
   }
 }

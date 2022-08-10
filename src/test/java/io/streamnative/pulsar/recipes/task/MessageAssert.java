@@ -24,9 +24,9 @@ import org.apache.pulsar.client.api.Schema;
 
 @RequiredArgsConstructor(access = PRIVATE)
 class MessageAssert {
-  private final Message<ProcessingState> message;
+  private final Message<TaskProcessingState> message;
 
-  static MessageAssert assertMessage(Message<ProcessingState> message) {
+  static MessageAssert assertMessage(Message<TaskProcessingState> message) {
     return new MessageAssert(message);
   }
 
@@ -44,7 +44,7 @@ class MessageAssert {
     return this;
   }
 
-  MessageAssert hasState(State state) {
+  MessageAssert hasState(TaskState state) {
     assertThat(message.getValue().getState()).isEqualTo(state);
     return this;
   }
