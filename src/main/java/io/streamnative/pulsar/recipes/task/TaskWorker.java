@@ -40,8 +40,6 @@ public class TaskWorker implements AutoCloseable {
   private final List<AutoCloseable> closeables;
   private final long shutdownTimeoutMillis;
 
-  // TODO main method & CLI?
-
   public static <T, R> TaskWorker create(
       PulsarClient client,
       TaskProcessor<T, R> taskProcessor,
