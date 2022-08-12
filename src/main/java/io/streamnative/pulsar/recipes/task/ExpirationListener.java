@@ -16,6 +16,8 @@
 package io.streamnative.pulsar.recipes.task;
 
 
+import static java.lang.Math.max;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -73,7 +75,14 @@ class ExpirationListener implements MessageListener<TaskProcessingState> {
     log.debug("State expires in {} milliseconds", expiryInterval); // TODO debug -> trace
     if (expiryInterval > 0) {
       log.debug("State not yet expired: {}", taskProcessingState);
-      // TODO would be nice to be able to redeliver only once at exactly the right time with reconsumerLater
+      // TODO would be nice to be able to redeliver only once at exactly the right time with reconsumeLater
+      // See also:
+      // Currently, retry letter topic is enabled in Shared subscription types.
+      // Compared with negative acknowledgment, retry letter topic is more suitable for messages that require a large
+      // number of retries with a configurable retry interval. Because messages in the retry letter topic are
+      // persisted to BookKeeper, while messages that need to be retried due to negative acknowledgment are cached on
+      // the client side.
+      // consumer.reconsumeLater(stateMessage, max(0L, expiryTimestamp - clock.millis()), MILLISECONDS);
       consumer.negativeAcknowledge(message);
     } else {
       log.debug("Deleting state: {}", taskProcessingState);
