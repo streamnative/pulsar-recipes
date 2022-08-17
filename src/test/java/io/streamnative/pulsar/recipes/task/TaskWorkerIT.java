@@ -64,11 +64,7 @@ public class TaskWorkerIT {
   private Consumer<TaskMetadata> metadataConsumer;
 
   private void createResources(String taskTopic) throws Exception {
-    client =
-        PulsarClient.builder()
-            // .serviceUrl(pulsar.getPulsarBrokerUrl())
-            .serviceUrl("pulsar://localhost:6650")
-            .build();
+    client = PulsarClient.builder().serviceUrl(pulsar.getPulsarBrokerUrl()).build();
     taskProducer =
         client
             .newProducer(Schema.STRING)
