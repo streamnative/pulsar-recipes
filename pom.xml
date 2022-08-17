@@ -47,7 +47,7 @@
 
     <assertj.version>3.18.1</assertj.version>
     <awaitility.version>4.2.0</awaitility.version>
-    <checkstyle.version>10.3.2</checkstyle.version>
+    <checkstyle.version>9.3</checkstyle.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
     <junit.version>5.9.0</junit.version>
     <logback.version>1.2.11</logback.version>
