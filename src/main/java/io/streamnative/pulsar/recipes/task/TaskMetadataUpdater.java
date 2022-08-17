@@ -23,28 +23,20 @@ import org.apache.pulsar.client.api.PulsarClientException;
 
 @Slf4j
 @RequiredArgsConstructor
-class TaskStateUpdater {
-  private final Producer<TaskProcessingState> producer;
+class TaskMetadataUpdater {
+  private final Producer<TaskMetadata> producer;
 
-  void update(TaskProcessingState taskProcessingState) throws PulsarClientException {
-    send(taskProcessingState, false);
-    log.debug(
-        "Updated state for {} to {}",
-        taskProcessingState.getMessageId(),
-        taskProcessingState.getState());
+  void update(TaskMetadata metadata) throws PulsarClientException {
+    send(metadata, false);
+    log.debug("Updated metadata for {} to {}", metadata.getMessageId(), metadata.getState());
   }
 
-  void delete(TaskProcessingState taskProcessingState) throws PulsarClientException {
-    send(taskProcessingState, true);
-    log.debug("Deleted state for {}", taskProcessingState.getMessageId());
+  void delete(TaskMetadata metadata) throws PulsarClientException {
+    send(metadata, true);
+    log.debug("Deleted metadata for {}", metadata.getMessageId());
   }
 
-  private void send(TaskProcessingState taskProcessingState, boolean tombstone)
-      throws PulsarClientException {
-    producer
-        .newMessage()
-        .key(taskProcessingState.getMessageId())
-        .value(tombstone ? null : taskProcessingState)
-        .send();
+  private void send(TaskMetadata metadata, boolean tombstone) throws PulsarClientException {
+    producer.newMessage().key(metadata.getMessageId()).value(tombstone ? null : metadata).send();
   }
 }

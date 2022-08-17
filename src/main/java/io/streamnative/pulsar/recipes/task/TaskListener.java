@@ -28,83 +28,76 @@ import org.apache.pulsar.client.api.Schema;
 @Slf4j
 @RequiredArgsConstructor
 public class TaskListener<T, R> implements MessageListener<T> {
-  private final TaskStateView<T> taskStateView;
-  private final TaskStateUpdater taskStateUpdater;
+  private final TaskMetadataView<T> taskMetadataView;
+  private final TaskMetadataUpdater taskMetadataUpdater;
   private final TaskHandler<T, R> taskHandler;
   private final Clock clock;
   private final Schema<R> resultSchema;
-  private final int maxAttempts;
+  private final int maxTaskAttempts;
   private final long keepAliveIntervalMillis;
 
   @Override
-  public void received(Consumer<T> consumer, Message<T> message) {
-    log.debug("Received: {}", message.getMessageId());
-    TaskProcessingState taskProcessingState = taskStateView.get(message);
+  public void received(Consumer<T> taskConsumer, Message<T> taskMessage) {
+    log.debug("Received: {}", taskMessage.getMessageId());
+    TaskMetadata metadata = taskMetadataView.get(taskMessage);
     try {
-      switch (taskProcessingState.getState()) {
+      switch (metadata.getState()) {
         case NEW:
-          handleTask(consumer, message, taskProcessingState);
+          handleTask(taskConsumer, taskMessage, metadata);
           break;
         case PROCESSING:
-          handleProcessing(consumer, message, taskProcessingState);
+          handleProcessing(taskConsumer, taskMessage, metadata);
           break;
         case COMPLETED:
-          consumer.acknowledge(message);
+          taskConsumer.acknowledge(taskMessage);
           break;
         case FAILED:
-          handleFailed(consumer, message, taskProcessingState);
+          handleFailed(taskConsumer, taskMessage, metadata);
           break;
         default:
-          log.error("Unexpected state: {}", taskProcessingState);
+          log.error("Unexpected state: {}", metadata);
           handleError(
-              consumer,
-              message,
-              taskProcessingState,
-              "Unexpected state: " + taskProcessingState.getState());
+              taskConsumer, taskMessage, metadata, "Unexpected state: " + metadata.getState());
           break;
       }
     } catch (Throwable t) {
-      log.error("Error processing task: {}", taskProcessingState, t);
-      consumer.negativeAcknowledge(message);
+      log.error("Error processing task: {}", metadata, t);
+      taskConsumer.negativeAcknowledge(taskMessage);
     }
   }
 
-  private void handleTask(
-      Consumer<T> consumer, Message<T> message, TaskProcessingState taskProcessingState)
+  private void handleTask(Consumer<T> consumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
-    TaskProcessingState updatedTaskProcessingState = taskProcessingState.process(clock.millis());
-    taskStateUpdater.update(updatedTaskProcessingState);
-    TaskProcessingState keepAliveState = updatedTaskProcessingState;
+    TaskMetadata updatedMetadata = taskMetadata.process(clock.millis());
+    taskMetadataUpdater.update(updatedMetadata);
+    TaskMetadata keepAliveState = updatedMetadata;
     try {
-      log.debug("Task processing for message {}", message.getMessageId());
+      log.debug("Task processing for message {}", taskMessage.getMessageId());
       R result =
           taskHandler.handleTask(
-              message.getValue(),
-              () -> taskStateUpdater.update(keepAliveState.keepAlive(clock.millis())));
-      log.debug("Task processed for message {}", message.getMessageId());
+              taskMessage.getValue(),
+              () -> taskMetadataUpdater.update(keepAliveState.keepAlive(clock.millis())));
+      log.debug("Task processed for message {}", taskMessage.getMessageId());
       byte[] encodedResult = resultSchema.encode(result);
-      updatedTaskProcessingState =
-          updatedTaskProcessingState.complete(clock.millis(), encodedResult);
-      taskStateUpdater.update(updatedTaskProcessingState);
-      consumer.acknowledge(message);
+      updatedMetadata = updatedMetadata.complete(clock.millis(), encodedResult);
+      taskMetadataUpdater.update(updatedMetadata);
+      consumer.acknowledge(taskMessage);
     } catch (TaskException e) {
-      log.error("Error while handling task: {}", updatedTaskProcessingState, e);
-      handleError(consumer, message, updatedTaskProcessingState, e.getCause().getMessage());
+      log.error("Error while handling task: {}", updatedMetadata, e);
+      handleError(consumer, taskMessage, updatedMetadata, e.getCause().getMessage());
     } catch (Exception e) {
-      log.error("Error handling task result: {}", updatedTaskProcessingState, e);
+      log.error("Error handling task result: {}", updatedMetadata, e);
     }
   }
 
-  private void handleProcessing(
-      Consumer<T> consumer, Message<T> message, TaskProcessingState taskProcessingState)
+  private void handleProcessing(Consumer<T> consumer, Message<T> message, TaskMetadata taskMetadata)
       throws PulsarClientException {
-    long lastUpdatedAgeMillis = clock.millis() - taskProcessingState.getLastUpdated();
+    long lastUpdatedAgeMillis = clock.millis() - taskMetadata.getLastUpdated();
     if (lastUpdatedAgeMillis > keepAliveIntervalMillis * 2) {
-      if (taskProcessingState.getAttempts() < maxAttempts) {
-        handleTask(consumer, message, taskProcessingState);
+      if (taskMetadata.getAttempts() < maxTaskAttempts) {
+        handleTask(consumer, message, taskMetadata);
       } else {
-        taskStateUpdater.update(
-            taskProcessingState.fail(clock.millis(), "Task processing is stale"));
+        taskMetadataUpdater.update(taskMetadata.fail(clock.millis(), "Task processing is stale"));
         consumer.acknowledge(message);
       }
     } else {
@@ -113,24 +106,23 @@ public class TaskListener<T, R> implements MessageListener<T> {
   }
 
   private void handleFailed(
-      Consumer<T> consumer, Message<T> message, TaskProcessingState taskProcessingState)
+      Consumer<T> taskConsumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
-    if (taskProcessingState.getAttempts() < maxAttempts) {
-      handleTask(consumer, message, taskProcessingState);
+    if (taskMetadata.getAttempts() < maxTaskAttempts) {
+      handleTask(taskConsumer, taskMessage, taskMetadata);
     } else {
-      consumer.acknowledge(message);
+      taskConsumer.acknowledge(taskMessage);
     }
   }
 
   private void handleError(
-      Consumer<T> consumer,
-      Message<T> message,
-      TaskProcessingState taskProcessingState,
+      Consumer<T> taskConsumer,
+      Message<T> taskMessage,
+      TaskMetadata taskMetadata,
       String failureReason)
       throws PulsarClientException {
-    TaskProcessingState failedTaskProcessingState =
-        taskProcessingState.fail(clock.millis(), failureReason);
-    taskStateUpdater.update(failedTaskProcessingState);
-    handleFailed(consumer, message, failedTaskProcessingState);
+    TaskMetadata failedTaskMetadata = taskMetadata.fail(clock.millis(), failureReason);
+    taskMetadataUpdater.update(failedTaskMetadata);
+    handleFailed(taskConsumer, taskMessage, failedTaskMetadata);
   }
 }

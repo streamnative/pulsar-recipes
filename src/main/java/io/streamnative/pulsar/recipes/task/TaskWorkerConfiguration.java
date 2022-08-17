@@ -33,9 +33,9 @@ public class TaskWorkerConfiguration<T, R> {
   private final Schema<T> taskSchema;
   private final Schema<R> resultSchema;
   private final String taskTopic;
-  private final String stateTopic;
+  private final String metadataTopic;
   private final String subscription;
-  private final int maxAttempts;
+  private final int maxTaskAttempts;
   private final Duration keepAliveInterval;
   private final Duration taskRedeliveryDelay;
   private final Duration retention;
@@ -54,7 +54,7 @@ public class TaskWorkerConfiguration<T, R> {
     private String stateTopic;
     private String subscription;
     // TODO review defaults
-    private int maxAttempts = 3;
+    private int maxTaskAttempts = 3;
     private Duration keepAliveInterval = Duration.ofMinutes(5);
     private Duration taskRedeliveryDelay = Duration.ofMinutes(5);
     private Duration retention = Duration.ofDays(1);
@@ -100,12 +100,12 @@ public class TaskWorkerConfiguration<T, R> {
     /**
      * The maximum number of times to attempt to process a task.
      *
-     * @param maxAttempts The maximum number of attempts
+     * @param maxTaskAttempts The maximum number of attempts
      * @return this TaskWorkerBuilder instance
      */
-    public Builder<T, R> maxAttempts(int maxAttempts) {
-      checkArgument(maxAttempts > 0, " maxAttempts must be greater than zero");
-      this.maxAttempts = maxAttempts;
+    public Builder<T, R> maxTaskAttempts(int maxTaskAttempts) {
+      checkArgument(maxTaskAttempts > 0, " maxTaskAttempts must be greater than zero");
+      this.maxTaskAttempts = maxTaskAttempts;
       return this;
     }
 
@@ -198,7 +198,7 @@ public class TaskWorkerConfiguration<T, R> {
           taskTopic,
           stateTopic,
           subscription,
-          maxAttempts,
+          maxTaskAttempts,
           keepAliveInterval,
           taskRedeliveryDelay,
           retention,

@@ -39,67 +39,68 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class ExpirationListenerTest {
+class TaskMetadataEvictionListenerTest {
   private static final int MAX_ATTEMPTS = 2;
   private static final long RETENTION_MILLIS = 10L;
-  @Mock private TaskStateUpdater stateUpdater;
+  @Mock private TaskMetadataUpdater metadataUpdater;
   @Mock private Clock clock;
-  @Mock private Consumer<TaskProcessingState> consumer;
-  @Mock private Message<TaskProcessingState> message;
-  private ExpirationListener expirationListener;
+  @Mock private Consumer<TaskMetadata> consumer;
+  @Mock private Message<TaskMetadata> message;
+  private TaskMetadataEvictionListener taskMetadataEvictionListener;
 
   @BeforeEach
   void beforeEach() {
-    expirationListener =
-        new ExpirationListener(stateUpdater, clock, MAX_ATTEMPTS, RETENTION_MILLIS);
+    taskMetadataEvictionListener =
+        new TaskMetadataEvictionListener(metadataUpdater, clock, MAX_ATTEMPTS, RETENTION_MILLIS);
   }
 
   @ParameterizedTest
   @MethodSource("nonTerminalProcessingStates")
-  void nonTerminalProcessingState(TaskProcessingState taskProcessingState) throws Exception {
-    when(message.getValue()).thenReturn(taskProcessingState);
+  void nonTerminalProcessingState(TaskMetadata taskMetadata) throws Exception {
+    when(message.getValue()).thenReturn(taskMetadata);
 
-    expirationListener.received(consumer, message);
+    taskMetadataEvictionListener.received(consumer, message);
 
     verify(consumer).acknowledge(message);
-    verify(stateUpdater, never()).delete(taskProcessingState);
+    verify(metadataUpdater, never()).delete(taskMetadata);
   }
 
   @ParameterizedTest
   @MethodSource("terminalProcessingStates")
-  void nonExpiredTerminalProcessingState(TaskProcessingState taskProcessingState) throws Exception {
-    when(message.getValue()).thenReturn(taskProcessingState);
+  void nonExpiredTerminalProcessingState(TaskMetadata taskMetadata) throws Exception {
+    when(message.getValue()).thenReturn(taskMetadata);
     when(clock.millis()).thenReturn(RETENTION_MILLIS - 1L);
 
-    expirationListener.received(consumer, message);
+    taskMetadataEvictionListener.received(consumer, message);
 
     verify(consumer).negativeAcknowledge(message);
-    verify(stateUpdater, never()).delete(taskProcessingState);
+    verify(metadataUpdater, never()).delete(taskMetadata);
   }
 
   @ParameterizedTest
   @MethodSource("terminalProcessingStates")
-  void expiredTerminalProcessingState(TaskProcessingState taskProcessingState) throws Exception {
-    when(message.getValue()).thenReturn(taskProcessingState);
+  void expiredTerminalProcessingState(TaskMetadata taskMetadata) throws Exception {
+    when(message.getValue()).thenReturn(taskMetadata);
     when(clock.millis()).thenReturn(RETENTION_MILLIS + 1L);
 
-    expirationListener.received(consumer, message);
+    taskMetadataEvictionListener.received(consumer, message);
 
-    verify(stateUpdater).delete(taskProcessingState);
+    verify(metadataUpdater).delete(taskMetadata);
   }
 
   @Test
   void exceptionsIgnored() throws Exception {
     doThrow(PulsarClientException.class).when(consumer).acknowledge(message);
 
-    assertThatNoException().isThrownBy(() -> expirationListener.received(consumer, message));
+    assertThatNoException()
+        .isThrownBy(() -> taskMetadataEvictionListener.received(consumer, message));
   }
 
-  private static Stream<TaskProcessingState> nonTerminalProcessingStates() {
+  private static Stream<TaskMetadata> nonTerminalProcessingStates() {
     return Stream.of(null, newState(), processingState(1), failedState(MAX_ATTEMPTS - 1));
   }
 
-  private static Stream<TaskProcessingState> terminalProcessingStates() {
+  private static Stream<TaskMetadata> terminalProcessingStates() {
     return Stream.of(completedState(1), failedState(MAX_ATTEMPTS));
   }
 }

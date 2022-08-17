@@ -33,21 +33,20 @@ final class TestUtils {
 
   static final String FAILURE_REASON = "failureReason";
 
-  static TaskProcessingState newState() {
-    return new TaskProcessingState(MESSAGE_ID, NEW, 0, 0, 0, ENCODED_TASK, null, null);
+  static TaskMetadata newState() {
+    return new TaskMetadata(MESSAGE_ID, NEW, 0, 0, 0, ENCODED_TASK, null, null);
   }
 
-  static TaskProcessingState processingState(int attempts) {
-    return new TaskProcessingState(
-        MESSAGE_ID, PROCESSING, 0, 0, attempts, ENCODED_TASK, null, null);
+  static TaskMetadata processingState(int attempts) {
+    return new TaskMetadata(MESSAGE_ID, PROCESSING, 0, 0, attempts, ENCODED_TASK, null, null);
   }
 
-  static TaskProcessingState completedState(int attempts) {
-    return new TaskProcessingState(
+  static TaskMetadata completedState(int attempts) {
+    return new TaskMetadata(
         MESSAGE_ID, COMPLETED, 0, 0, attempts, ENCODED_TASK, ENCODED_RESULT, null);
   }
 
-  static TaskProcessingState failedState(int attempts) {
-    return new TaskProcessingState(MESSAGE_ID, FAILED, 0, 0, attempts, ENCODED_TASK, null, null);
+  static TaskMetadata failedState(int attempts) {
+    return new TaskMetadata(MESSAGE_ID, FAILED, 0, 0, attempts, ENCODED_TASK, null, null);
   }
 }

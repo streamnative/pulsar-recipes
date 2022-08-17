@@ -38,10 +38,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.testcontainers.containers.PulsarContainer;
 import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
-// @Testcontainers
+@Testcontainers
 public class TaskWorkerIT {
   private static final DockerImageName pulsarImage =
       DockerImageName.parse("apachepulsar/pulsar").withTag("2.10.0");
@@ -60,7 +61,7 @@ public class TaskWorkerIT {
 
   private PulsarClient client;
   private Producer<String> taskProducer;
-  private Consumer<TaskProcessingState> stateConsumer;
+  private Consumer<TaskMetadata> metadataConsumer;
 
   private void createResources(String taskTopic) throws Exception {
     client =
@@ -74,9 +75,9 @@ public class TaskWorkerIT {
             .topic(taskTopic)
             .enableBatching(false) // TODO very important to document
             .create();
-    stateConsumer =
+    metadataConsumer =
         client
-            .newConsumer(Schema.JSON(TaskProcessingState.class))
+            .newConsumer(Schema.JSON(TaskMetadata.class))
             .topic(taskTopic + "-state")
             .subscriptionName(randomUUID().toString())
             .subscribe();
@@ -85,7 +86,7 @@ public class TaskWorkerIT {
   @AfterEach
   void afterEach() throws Exception {
     taskProducer.close();
-    stateConsumer.close();
+    metadataConsumer.close();
   }
 
   @Test
@@ -111,7 +112,7 @@ public class TaskWorkerIT {
     long before = clock.millis();
     String messageId = taskProducer.send("foo").toString();
 
-    Message<TaskProcessingState> firstMessage = nextMessage(5);
+    Message<TaskMetadata> firstMessage = nextMessage(5);
     long now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId)
@@ -124,7 +125,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskProcessingState> secondMessage = nextMessage(5);
+    Message<TaskMetadata> secondMessage = nextMessage(5);
     assertMessage(secondMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -171,7 +172,7 @@ public class TaskWorkerIT {
     long before = clock.millis();
     String messageId = taskProducer.send("foo").toString();
 
-    Message<TaskProcessingState> firstMessage = nextMessage(5);
+    Message<TaskMetadata> firstMessage = nextMessage(5);
     long now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId)
@@ -184,7 +185,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskProcessingState> secondMessage = nextMessage(5);
+    Message<TaskMetadata> secondMessage = nextMessage(5);
     assertMessage(secondMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -196,7 +197,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason("failed");
 
-    Message<TaskProcessingState> thirdMessage = nextMessage(5);
+    Message<TaskMetadata> thirdMessage = nextMessage(5);
     assertMessage(thirdMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -208,7 +209,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskProcessingState> fourthMessage = nextMessage(5);
+    Message<TaskMetadata> fourthMessage = nextMessage(5);
     assertMessage(fourthMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -240,7 +241,7 @@ public class TaskWorkerIT {
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
-            .maxAttempts(1)
+            .maxTaskAttempts(1)
             .retention(Duration.ofSeconds(1))
             .expirationRedeliveryDelay(Duration.ofSeconds(1))
             .build();
@@ -252,7 +253,7 @@ public class TaskWorkerIT {
     long before = clock.millis();
     String messageId = taskProducer.send("foo").toString();
 
-    Message<TaskProcessingState> firstMessage = nextMessage(5);
+    Message<TaskMetadata> firstMessage = nextMessage(5);
     long now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId)
@@ -265,7 +266,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskProcessingState> secondMessage = nextMessage(5);
+    Message<TaskMetadata> secondMessage = nextMessage(5);
     assertMessage(secondMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -282,10 +283,10 @@ public class TaskWorkerIT {
     assertThat(nextMessage(10)).isNull();
   }
 
-  private Message<TaskProcessingState> nextMessage(int timeout) throws Exception {
-    Message<TaskProcessingState> message = stateConsumer.receive(timeout, SECONDS);
+  private Message<TaskMetadata> nextMessage(int timeout) throws Exception {
+    Message<TaskMetadata> message = metadataConsumer.receive(timeout, SECONDS);
     if (message != null) {
-      stateConsumer.acknowledge(message);
+      metadataConsumer.acknowledge(message);
     }
     return message;
   }

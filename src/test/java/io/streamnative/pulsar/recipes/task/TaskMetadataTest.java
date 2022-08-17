@@ -28,56 +28,54 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.apache.pulsar.client.api.Schema;
 import org.junit.jupiter.api.Test;
 
-class TaskProcessingStateTest {
+class TaskMetadataTest {
   private final long now = 0L;
   private final long newNow = 1L;
-  private final TaskProcessingState newProcessingState =
-      new TaskProcessingState(MESSAGE_ID, NEW, now, now, 0, ENCODED_TASK, null, null);
+  private final TaskMetadata newTaskMetadata =
+      new TaskMetadata(MESSAGE_ID, NEW, now, now, 0, ENCODED_TASK, null, null);
 
   @Test
   void ofShouldCreateNewState() {
-    assertThat(TaskProcessingState.of(MESSAGE_ID, now, ENCODED_TASK)).isEqualTo(newProcessingState);
+    assertThat(TaskMetadata.of(MESSAGE_ID, now, ENCODED_TASK)).isEqualTo(newTaskMetadata);
   }
 
   @Test
   void processShouldTransitionToProcessing() {
-    assertThat(newProcessingState.process(newNow))
+    assertThat(newTaskMetadata.process(newNow))
         .isEqualTo(
-            new TaskProcessingState(
-                MESSAGE_ID, PROCESSING, now, newNow, 1, ENCODED_TASK, null, null));
+            new TaskMetadata(MESSAGE_ID, PROCESSING, now, newNow, 1, ENCODED_TASK, null, null));
   }
 
   @Test
   void keepALiveShouldUpdateLastUpdated() {
-    assertThat(newProcessingState.keepAlive(newNow))
-        .isEqualTo(
-            new TaskProcessingState(MESSAGE_ID, NEW, now, newNow, 0, ENCODED_TASK, null, null));
+    assertThat(newTaskMetadata.keepAlive(newNow))
+        .isEqualTo(new TaskMetadata(MESSAGE_ID, NEW, now, newNow, 0, ENCODED_TASK, null, null));
   }
 
   @Test
   void completeShouldTransitionToCompleted() {
-    assertThat(newProcessingState.complete(newNow, ENCODED_RESULT))
+    assertThat(newTaskMetadata.complete(newNow, ENCODED_RESULT))
         .isEqualTo(
-            new TaskProcessingState(
+            new TaskMetadata(
                 MESSAGE_ID, COMPLETED, now, newNow, 0, ENCODED_TASK, ENCODED_RESULT, null));
   }
 
   @Test
   void failShouldTransitionToFailed() {
-    assertThat(newProcessingState.fail(newNow, FAILURE_REASON))
+    assertThat(newTaskMetadata.fail(newNow, FAILURE_REASON))
         .isEqualTo(
-            new TaskProcessingState(
+            new TaskMetadata(
                 MESSAGE_ID, FAILED, now, newNow, 0, ENCODED_TASK, null, FAILURE_REASON));
   }
 
   @Test
   void serde() {
-    TaskProcessingState taskProcessingState =
-        new TaskProcessingState(
+    TaskMetadata taskMetadata =
+        new TaskMetadata(
             MESSAGE_ID, COMPLETED, now, newNow, 0, ENCODED_TASK, ENCODED_RESULT, FAILURE_REASON);
-    Schema<TaskProcessingState> schema = Schema.JSON(TaskProcessingState.class);
-    byte[] bytes = schema.encode(taskProcessingState);
-    TaskProcessingState result = schema.decode(bytes);
-    assertThat(result).isEqualTo(taskProcessingState);
+    Schema<TaskMetadata> schema = Schema.JSON(TaskMetadata.class);
+    byte[] bytes = schema.encode(taskMetadata);
+    TaskMetadata result = schema.decode(bytes);
+    assertThat(result).isEqualTo(taskMetadata);
   }
 }

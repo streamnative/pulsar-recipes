@@ -25,7 +25,7 @@ import lombok.Value;
 
 @Value
 @ToString(exclude = {"task", "result"}) // task and result may be sensitive
-public class TaskProcessingState {
+public class TaskMetadata {
   String messageId;
   TaskState state;
   long created;
@@ -35,29 +35,29 @@ public class TaskProcessingState {
   byte[] result;
   String failureReason;
 
-  public static TaskProcessingState of(String messageId, long now, byte[] task) {
-    return new TaskProcessingState(messageId, NEW, now, now, 0, task, null, null);
+  public static TaskMetadata of(String messageId, long now, byte[] task) {
+    return new TaskMetadata(messageId, NEW, now, now, 0, task, null, null);
   }
 
-  private TaskProcessingState transition(
+  private TaskMetadata transition(
       TaskState state, long lastUpdated, int attempts, byte[] result, String failureReason) {
-    return new TaskProcessingState(
+    return new TaskMetadata(
         messageId, state, created, lastUpdated, attempts, task, result, failureReason);
   }
 
-  public TaskProcessingState process(long now) {
+  public TaskMetadata process(long now) {
     return transition(PROCESSING, now, attempts + 1, result, null);
   }
 
-  public TaskProcessingState keepAlive(long now) {
+  public TaskMetadata keepAlive(long now) {
     return transition(state, now, attempts, result, failureReason);
   }
 
-  public TaskProcessingState complete(long now, byte[] result) {
+  public TaskMetadata complete(long now, byte[] result) {
     return transition(COMPLETED, now, attempts, result, failureReason);
   }
 
-  public TaskProcessingState fail(long now, String failureReason) {
+  public TaskMetadata fail(long now, String failureReason) {
     return transition(FAILED, now, attempts, result, failureReason);
   }
 }

@@ -48,42 +48,42 @@ public class TaskWorker implements AutoCloseable {
     ExecutorService executor = newSingleThreadExecutor();
     Clock clock = systemUTC();
 
-    Schema<TaskProcessingState> stateSchema = Schema.JSON(TaskProcessingState.class);
+    Schema<TaskMetadata> stateSchema = Schema.JSON(TaskMetadata.class);
 
     MessagingFactory<T> factory = new MessagingFactory<>(client, stateSchema, configuration);
     List<AutoCloseable> closeables = new ArrayList<>();
 
-    Producer<TaskProcessingState> taskStateProducer = factory.taskStateProducer();
-    closeables.add(taskStateProducer);
-    TaskStateUpdater stateUpdater = new TaskStateUpdater(taskStateProducer);
+    Producer<TaskMetadata> metadataProducer = factory.taskMetadataProducer();
+    closeables.add(metadataProducer);
+    TaskMetadataUpdater stateUpdater = new TaskMetadataUpdater(metadataProducer);
 
-    TableView<TaskProcessingState> taskStateTableView = factory.taskStateTableView();
-    closeables.add(taskStateTableView);
-    TaskStateView<T> taskStateView =
-        new TaskStateView<>(taskStateTableView, clock, configuration.getTaskSchema());
+    TableView<TaskMetadata> metadataTableView = factory.taskMetadataTableView();
+    closeables.add(metadataTableView);
+    TaskMetadataView<T> taskMetadataView =
+        new TaskMetadataView<>(metadataTableView, clock, configuration.getTaskSchema());
 
     TaskHandler<T, R> taskHandler =
         new TaskHandler<>(executor, taskProcessor, configuration.getKeepAliveInterval().toMillis());
     TaskListener<T, R> taskListener =
         new TaskListener<>(
-            taskStateView,
+            taskMetadataView,
             stateUpdater,
             taskHandler,
             clock,
             configuration.getResultSchema(),
-            configuration.getMaxAttempts(),
+            configuration.getMaxTaskAttempts(),
             configuration.getKeepAliveInterval().toMillis());
     Consumer<T> taskConsumer = factory.taskConsumer(taskListener);
     closeables.add(taskConsumer);
 
-    ExpirationListener expirationListener =
-        new ExpirationListener(
+    TaskMetadataEvictionListener evictionListener =
+        new TaskMetadataEvictionListener(
             stateUpdater,
             clock,
-            configuration.getMaxAttempts(),
+            configuration.getMaxTaskAttempts(),
             configuration.getRetention().toMillis());
-    Consumer<TaskProcessingState> taskStateConsumer = factory.taskStateConsumer(expirationListener);
-    closeables.add(taskStateConsumer);
+    Consumer<TaskMetadata> metadataConsumer = factory.taskMetadataConsumer(evictionListener);
+    closeables.add(metadataConsumer);
 
     return new TaskWorker(executor, closeables, configuration.getShutdownTimeout().toMillis());
   }

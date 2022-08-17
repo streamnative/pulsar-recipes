@@ -29,33 +29,37 @@ import org.apache.pulsar.client.api.TableView;
 @RequiredArgsConstructor
 class MessagingFactory<T> {
   private final PulsarClient client;
-  private final Schema<TaskProcessingState> stateSchema;
+  private final Schema<TaskMetadata> metadataSchema;
   private final TaskWorkerConfiguration<T, ?> configuration;
 
-  // TODO we're going to be consuming the state events twice - once for the tableView and once for expiration
-  TableView<TaskProcessingState> taskStateTableView() throws PulsarClientException {
-    return client.newTableViewBuilder(stateSchema).topic(configuration.getStateTopic()).create();
+  // TODO we're going to be consuming the state events twice - once for the tableView and once for
+  // expiration
+  TableView<TaskMetadata> taskMetadataTableView() throws PulsarClientException {
+    return client
+        .newTableViewBuilder(metadataSchema)
+        .topic(configuration.getMetadataTopic())
+        .create();
   }
 
-  Producer<TaskProcessingState> taskStateProducer() throws PulsarClientException {
+  Producer<TaskMetadata> taskMetadataProducer() throws PulsarClientException {
     return client
-        .newProducer(stateSchema)
-        .topic(configuration.getStateTopic())
+        .newProducer(metadataSchema)
+        .topic(configuration.getMetadataTopic())
         .enableBatching(false)
         .create();
   }
 
-  Consumer<TaskProcessingState> taskStateConsumer(ExpirationListener expirationListener)
+  Consumer<TaskMetadata> taskMetadataConsumer(TaskMetadataEvictionListener evictionListener)
       throws PulsarClientException {
     // TODO state consumer ackTimeout
     return client
-        .newConsumer(stateSchema)
-        .topic(configuration.getStateTopic())
+        .newConsumer(metadataSchema)
+        .topic(configuration.getMetadataTopic())
         .subscriptionName(configuration.getSubscription())
         .subscriptionType(Shared)
         .negativeAckRedeliveryDelay(
             configuration.getExpirationRedeliveryDelay().toMillis(), MILLISECONDS)
-        .messageListener(expirationListener)
+        .messageListener(evictionListener)
         .subscribe();
   }
 

@@ -23,7 +23,7 @@
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
   </Match>
   <Match>
-    <Class name="io.streamnative.pulsar.recipes.task.ExpirationListener"/>
+    <Class name="io.streamnative.pulsar.recipes.task.TaskMetadataEvictionListener"/>
     <Bug pattern="SE_BAD_FIELD"/>
   </Match>
   <Match>
@@ -31,7 +31,7 @@
     <Bug pattern="SE_BAD_FIELD,EI_EXPOSE_REP2"/>
   </Match>
   <Match>
-    <Class name="io.streamnative.pulsar.recipes.task.TaskProcessingState"/>
+    <Class name="io.streamnative.pulsar.recipes.task.TaskMetadata"/>
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
   </Match>
 </FindBugsFilter>

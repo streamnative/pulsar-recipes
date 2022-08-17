@@ -24,9 +24,9 @@ import org.apache.pulsar.client.api.Schema;
 
 @RequiredArgsConstructor(access = PRIVATE)
 class MessageAssert {
-  private final Message<TaskProcessingState> message;
+  private final Message<TaskMetadata> message;
 
-  static MessageAssert assertMessage(Message<TaskProcessingState> message) {
+  static MessageAssert assertMessage(Message<TaskMetadata> message) {
     return new MessageAssert(message);
   }
 

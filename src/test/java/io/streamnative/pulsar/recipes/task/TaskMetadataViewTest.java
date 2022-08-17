@@ -35,19 +35,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TaskStateViewTest {
-  @Mock private TableView<TaskProcessingState> tableView;
+class TaskMetadataViewTest {
+  @Mock private TableView<TaskMetadata> tableView;
   @Mock private Clock clock;
   @Mock private Message<String> message;
   @Mock private MessageId messageId;
-  private TaskStateView<String> stateView;
+  private TaskMetadataView<String> metadataView;
   private final Schema<String> taskSchema = Schema.STRING;
 
   @BeforeEach
   void beforeEach() {
     when(message.getMessageId()).thenReturn(messageId);
     when(messageId.toString()).thenReturn(MESSAGE_ID);
-    stateView = new TaskStateView<>(tableView, clock, taskSchema);
+    metadataView = new TaskMetadataView<>(tableView, clock, taskSchema);
   }
 
   @Test
@@ -57,16 +57,16 @@ class TaskStateViewTest {
 
     when(tableView.get(MESSAGE_ID)).thenReturn(null);
 
-    assertThat(stateView.get(message))
-        .isEqualTo(new TaskProcessingState(MESSAGE_ID, NEW, 0L, 0L, 0, ENCODED_TASK, null, null));
+    assertThat(metadataView.get(message))
+        .isEqualTo(new TaskMetadata(MESSAGE_ID, NEW, 0L, 0L, 0, ENCODED_TASK, null, null));
   }
 
   @Test
   void previouslySeenMessageId() {
-    TaskProcessingState taskProcessingState =
-        new TaskProcessingState(MESSAGE_ID, PROCESSING, 0L, 10L, 1, ENCODED_TASK, null, null);
-    when(tableView.get(MESSAGE_ID)).thenReturn(taskProcessingState);
+    TaskMetadata taskMetadata =
+        new TaskMetadata(MESSAGE_ID, PROCESSING, 0L, 10L, 1, ENCODED_TASK, null, null);
+    when(tableView.get(MESSAGE_ID)).thenReturn(taskMetadata);
 
-    assertThat(stateView.get(message)).isEqualTo(taskProcessingState);
+    assertThat(metadataView.get(message)).isEqualTo(taskMetadata);
   }
 }

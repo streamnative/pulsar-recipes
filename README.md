@@ -40,8 +40,8 @@ Producer<Task> producer = client.newProducer(Schema.JSON(Task.class))
     .enableBatching(false)
     .create();
 
-Consumer<TaskProcessingState> consumer = client.newConsumer(Schema.JSON(TaskProcessingState.class))
-    .topic("tasks-state")
+Consumer<TaskMetadata> consumer = client.newConsumer(Schema.JSON(TaskMetadata.class))
+    .topic("tasks-metadata")
     .subscriptionName("results-subscription")
     .subscribe();
 
@@ -51,10 +51,10 @@ Schema<Result> schema = Schema.JSON(Result.class);
 
 while(true) {
     Message<TaskProcessingState> message = consumer.receive();
-    TaskProcessingState taskProcessingState = message.getValue();
-    if (taskProcessingState.getMessageId().equals(messageId)
-        && taskProcessingState.getState() == State.COMPLETED) {
-        Result result = schema.decode(taskProcessingState.getResult());
+        TaskMetadata taskMetadata = message.getValue();
+    if (taskMetadata.getMessageId().equals(messageId)
+        && taskMetadata.getState() == State.COMPLETED) {
+        Result result = schema.decode(taskMetadata.getResult());
     }
 }
 ```

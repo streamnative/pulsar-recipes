@@ -39,7 +39,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class MessagingFactoryTest {
   @Mock private PulsarClient client;
-  private final Schema<TaskProcessingState> stateSchema = Schema.JSON(TaskProcessingState.class);
+  private final Schema<TaskMetadata> metadataSchema = Schema.JSON(TaskMetadata.class);
   private final TaskWorkerConfiguration<String, String> configuration =
       TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
           .taskTopic("tasks")
@@ -51,46 +51,44 @@ class MessagingFactoryTest {
 
   @BeforeEach
   void beforeEach() {
-    messagingFactory = new MessagingFactory<>(client, stateSchema, configuration);
+    messagingFactory = new MessagingFactory<>(client, metadataSchema, configuration);
   }
 
   @Test
   void stateTableView(
-      @Mock TableViewBuilder<TaskProcessingState> builder,
-      @Mock TableView<TaskProcessingState> tableView)
+      @Mock TableViewBuilder<TaskMetadata> builder, @Mock TableView<TaskMetadata> tableView)
       throws PulsarClientException {
-    when(client.newTableViewBuilder(stateSchema)).thenReturn(builder);
-    when(builder.topic(configuration.getStateTopic())).thenReturn(builder);
+    when(client.newTableViewBuilder(metadataSchema)).thenReturn(builder);
+    when(builder.topic(configuration.getMetadataTopic())).thenReturn(builder);
     when(builder.create()).thenReturn(tableView);
 
-    TableView<TaskProcessingState> result = messagingFactory.taskStateTableView();
+    TableView<TaskMetadata> result = messagingFactory.taskMetadataTableView();
 
     assertThat(result).isSameAs(tableView);
   }
 
   @Test
   void stateProducer(
-      @Mock ProducerBuilder<TaskProcessingState> builder,
-      @Mock Producer<TaskProcessingState> producer)
+      @Mock ProducerBuilder<TaskMetadata> builder, @Mock Producer<TaskMetadata> producer)
       throws PulsarClientException {
-    when(client.newProducer(stateSchema)).thenReturn(builder);
-    when(builder.topic(configuration.getStateTopic())).thenReturn(builder);
+    when(client.newProducer(metadataSchema)).thenReturn(builder);
+    when(builder.topic(configuration.getMetadataTopic())).thenReturn(builder);
     when(builder.enableBatching(false)).thenReturn(builder);
     when(builder.create()).thenReturn(producer);
 
-    Producer<TaskProcessingState> result = messagingFactory.taskStateProducer();
+    Producer<TaskMetadata> result = messagingFactory.taskMetadataProducer();
 
     assertThat(result).isSameAs(producer);
   }
 
   @Test
   void stateConsumer(
-      @Mock ConsumerBuilder<TaskProcessingState> builder,
-      @Mock ExpirationListener listener,
-      @Mock Consumer<TaskProcessingState> consumer)
+      @Mock ConsumerBuilder<TaskMetadata> builder,
+      @Mock TaskMetadataEvictionListener listener,
+      @Mock Consumer<TaskMetadata> consumer)
       throws PulsarClientException {
-    when(client.newConsumer(stateSchema)).thenReturn(builder);
-    when(builder.topic(configuration.getStateTopic())).thenReturn(builder);
+    when(client.newConsumer(metadataSchema)).thenReturn(builder);
+    when(builder.topic(configuration.getMetadataTopic())).thenReturn(builder);
     when(builder.subscriptionName(configuration.getSubscription())).thenReturn(builder);
     when(builder.subscriptionType(Shared)).thenReturn(builder);
     when(builder.negativeAckRedeliveryDelay(
@@ -99,7 +97,7 @@ class MessagingFactoryTest {
     when(builder.messageListener(listener)).thenReturn(builder);
     when(builder.subscribe()).thenReturn(consumer);
 
-    Consumer<TaskProcessingState> result = messagingFactory.taskStateConsumer(listener);
+    Consumer<TaskMetadata> result = messagingFactory.taskMetadataConsumer(listener);
 
     assertThat(result).isSameAs(consumer);
   }

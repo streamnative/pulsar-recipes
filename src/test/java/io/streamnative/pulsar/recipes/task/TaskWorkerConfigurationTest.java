@@ -42,9 +42,9 @@ class TaskWorkerConfigurationTest {
     assertThat(configuration.getTaskSchema()).isEqualTo(Schema.STRING);
     assertThat(configuration.getResultSchema()).isEqualTo(Schema.INT32);
     assertThat(configuration.getTaskTopic()).isEqualTo("tasks");
-    assertThat(configuration.getStateTopic()).isEqualTo("tasks-state");
+    assertThat(configuration.getMetadataTopic()).isEqualTo("tasks-state");
     assertThat(configuration.getSubscription()).isEqualTo("subscription");
-    assertThat(configuration.getMaxAttempts()).isEqualTo(3);
+    assertThat(configuration.getMaxTaskAttempts()).isEqualTo(3);
     assertThat(configuration.getKeepAliveInterval()).isEqualTo(Duration.ofMinutes(5));
     assertThat(configuration.getTaskRedeliveryDelay()).isEqualTo(Duration.ofMinutes(5));
     assertThat(configuration.getRetention()).isEqualTo(Duration.ofDays(1));
@@ -77,7 +77,7 @@ class TaskWorkerConfigurationTest {
             builder ->
                 builder
                     .stateTopic("tasks-state")
-                    .maxAttempts(1)
+                    .maxTaskAttempts(1)
                     .taskRedeliveryDelay(ONE_SECOND)
                     .keepAliveInterval(ONE_SECOND)
                     .retention(ONE_SECOND)
@@ -90,7 +90,7 @@ class TaskWorkerConfigurationTest {
         args(builder -> builder.stateTopic(null), false),
         args(builder -> builder.subscription(""), false),
         args(builder -> builder.subscription(null), false),
-        args(builder -> builder.maxAttempts(0), false),
+        args(builder -> builder.maxTaskAttempts(0), false),
         args(builder -> builder.taskRedeliveryDelay(ZERO), false),
         args(builder -> builder.taskRedeliveryDelay(null), false),
         args(builder -> builder.keepAliveInterval(ZERO), false),
