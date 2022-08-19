@@ -54,6 +54,7 @@ public class TaskWorkerIT {
         protected void configure() {
           super.configure();
           withStartupTimeout(Duration.ofMinutes(3));
+          withEnv("PULSAR_PREFIX_delayedDeliveryTickTimeMillis", "5");
         }
       };
 
@@ -65,6 +66,7 @@ public class TaskWorkerIT {
 
   private void createResources(String taskTopic) throws Exception {
     client = PulsarClient.builder().serviceUrl(pulsar.getPulsarBrokerUrl()).build();
+
     taskProducer =
         client
             .newProducer(Schema.STRING)
@@ -85,6 +87,8 @@ public class TaskWorkerIT {
     metadataConsumer.close();
   }
 
+  Duration d = Duration.ofMillis(20);
+
   @Test
   @Timeout(30)
   void success() throws Exception {
@@ -97,8 +101,7 @@ public class TaskWorkerIT {
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
-            .retention(Duration.ofSeconds(1))
-            .expirationRedeliveryDelay(Duration.ofSeconds(1))
+            .retention(d)
             .build();
 
     @SuppressWarnings("unused")
@@ -157,8 +160,7 @@ public class TaskWorkerIT {
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
-            .retention(Duration.ofSeconds(1))
-            .expirationRedeliveryDelay(Duration.ofSeconds(1))
+            .retention(d)
             .build();
 
     @SuppressWarnings("unused")
@@ -238,8 +240,7 @@ public class TaskWorkerIT {
             .taskTopic(taskTopic)
             .subscription("subscription")
             .maxTaskAttempts(1)
-            .retention(Duration.ofSeconds(1))
-            .expirationRedeliveryDelay(Duration.ofSeconds(1))
+            .retention(d)
             .build();
 
     @SuppressWarnings("unused")

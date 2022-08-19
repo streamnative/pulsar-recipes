@@ -48,7 +48,7 @@ class TaskWorkerConfigurationTest {
     assertThat(configuration.getKeepAliveInterval()).isEqualTo(Duration.ofMinutes(5));
     assertThat(configuration.getTaskRedeliveryDelay()).isEqualTo(Duration.ofMinutes(5));
     assertThat(configuration.getRetention()).isEqualTo(Duration.ofDays(1));
-    assertThat(configuration.getExpirationRedeliveryDelay()).isEqualTo(Duration.ofMinutes(5));
+    //    assertThat(configuration.getExpirationRedeliveryDelay()).isEqualTo(Duration.ofMinutes(5));
     assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofSeconds(10));
   }
 
@@ -81,7 +81,7 @@ class TaskWorkerConfigurationTest {
                     .taskRedeliveryDelay(ONE_SECOND)
                     .keepAliveInterval(ONE_SECOND)
                     .retention(ONE_SECOND)
-                    .expirationRedeliveryDelay(ONE_SECOND)
+                    //                    .expirationRedeliveryDelay(ONE_SECOND)
                     .shutdownTimeout(ONE_SECOND),
             true),
         args(builder -> builder.taskTopic(null), false),
@@ -97,8 +97,8 @@ class TaskWorkerConfigurationTest {
         args(builder -> builder.keepAliveInterval(null), false),
         args(builder -> builder.retention(ZERO), false),
         args(builder -> builder.retention(null), false),
-        args(builder -> builder.expirationRedeliveryDelay(ZERO), false),
-        args(builder -> builder.expirationRedeliveryDelay(null), false),
+        //        args(builder -> builder.expirationRedeliveryDelay(ZERO), false),
+        //        args(builder -> builder.expirationRedeliveryDelay(null), false),
         args(builder -> builder.shutdownTimeout(ZERO), false),
         args(builder -> builder.shutdownTimeout(null), false));
   }

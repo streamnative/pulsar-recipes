@@ -23,7 +23,7 @@
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
   </Match>
   <Match>
-    <Class name="io.streamnative.pulsar.recipes.task.TaskMetadataEvictionListener"/>
+    <Class name="io.streamnative.pulsar.recipes.task.TaskMetadataLifecycleListener"/>
     <Bug pattern="SE_BAD_FIELD"/>
   </Match>
   <Match>

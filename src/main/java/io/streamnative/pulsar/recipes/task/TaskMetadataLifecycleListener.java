@@ -16,6 +16,7 @@
 package io.streamnative.pulsar.recipes.task;
 
 import static java.lang.Math.max;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.time.Clock;
 import lombok.RequiredArgsConstructor;
@@ -27,8 +28,8 @@ import org.apache.pulsar.client.api.PulsarClientException;
 
 @Slf4j
 @RequiredArgsConstructor
-class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
-  private final TaskMetadataUpdater stateUpdater;
+class TaskMetadataLifecycleListener implements MessageListener<TaskMetadata> {
+  private final TaskMetadataUpdater metadataUpdater;
   private final Clock clock;
   private final int maxTaskAttempts;
   private final long terminalStateRetentionMillis;
@@ -73,24 +74,14 @@ class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
     // TODO debug -> trace
     log.debug("Task metadata should be evicted in {} milliseconds", intervalUntilMetadataEviction);
     if (intervalUntilMetadataEviction > 0) {
-      log.debug("Task metadata not yet eligible for eviction: {}", metadata);
-      // TODO would be nice to be able to redeliver only once at exactly the right time with
-      // reconsumeLater
-      // See also:
-      // Currently, retry letter topic is enabled in Shared subscription types.
-      // Compared with negative acknowledgment, retry letter topic is more suitable for messages
-      // that require a large
-      // number of retries with a configurable retry interval. Because messages in the retry letter
-      // topic are
-      // persisted to BookKeeper, while messages that need to be retried due to negative
-      // acknowledgment are cached on
-      // the client side.
-      // consumer.reconsumeLater(metadataMessage, intervalUntilMetadataEviction(metadata),
-      // MILLISECONDS);
-      metadataConsumer.negativeAcknowledge(metadataMessage);
+      log.debug(
+          "Task metadata not yet eligible for eviction - delaying redelivery until eviction horizon: {}",
+          metadata);
+      metadataConsumer.reconsumeLater(
+          metadataMessage, intervalUntilMetadataEviction(metadata), MILLISECONDS);
     } else {
       log.debug("Evicting task metadata: {}", metadata);
-      stateUpdater.delete(metadata);
+      metadataUpdater.delete(metadata);
       metadataConsumer.acknowledge(metadataMessage);
     }
   }

@@ -45,7 +45,7 @@ class MessagingFactoryTest {
           .taskTopic("tasks")
           .subscription("subscription")
           .retention(Duration.ofSeconds(1))
-          .expirationRedeliveryDelay(Duration.ofSeconds(1))
+          //          .expirationRedeliveryDelay(Duration.ofSeconds(1))
           .build();
   private MessagingFactory<String> messagingFactory;
 
@@ -84,16 +84,14 @@ class MessagingFactoryTest {
   @Test
   void stateConsumer(
       @Mock ConsumerBuilder<TaskMetadata> builder,
-      @Mock TaskMetadataEvictionListener listener,
+      @Mock TaskMetadataLifecycleListener listener,
       @Mock Consumer<TaskMetadata> consumer)
       throws PulsarClientException {
     when(client.newConsumer(metadataSchema)).thenReturn(builder);
     when(builder.topic(configuration.getMetadataTopic())).thenReturn(builder);
     when(builder.subscriptionName(configuration.getSubscription())).thenReturn(builder);
     when(builder.subscriptionType(Shared)).thenReturn(builder);
-    when(builder.negativeAckRedeliveryDelay(
-            configuration.getExpirationRedeliveryDelay().toMillis(), MILLISECONDS))
-        .thenReturn(builder);
+    when(builder.enableRetry(true)).thenReturn(builder);
     when(builder.messageListener(listener)).thenReturn(builder);
     when(builder.subscribe()).thenReturn(consumer);
 

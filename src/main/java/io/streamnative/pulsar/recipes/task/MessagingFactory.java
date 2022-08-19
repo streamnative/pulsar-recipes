@@ -49,7 +49,7 @@ class MessagingFactory<T> {
         .create();
   }
 
-  Consumer<TaskMetadata> taskMetadataConsumer(TaskMetadataEvictionListener evictionListener)
+  Consumer<TaskMetadata> taskMetadataConsumer(TaskMetadataLifecycleListener lifecycleListener)
       throws PulsarClientException {
     // TODO state consumer ackTimeout
     return client
@@ -57,9 +57,8 @@ class MessagingFactory<T> {
         .topic(configuration.getMetadataTopic())
         .subscriptionName(configuration.getSubscription())
         .subscriptionType(Shared)
-        .negativeAckRedeliveryDelay(
-            configuration.getExpirationRedeliveryDelay().toMillis(), MILLISECONDS)
-        .messageListener(evictionListener)
+        .enableRetry(true)
+        .messageListener(lifecycleListener)
         .subscribe();
   }
 

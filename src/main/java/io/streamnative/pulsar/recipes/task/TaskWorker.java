@@ -76,13 +76,13 @@ public class TaskWorker implements AutoCloseable {
     Consumer<T> taskConsumer = factory.taskConsumer(taskListener);
     closeables.add(taskConsumer);
 
-    TaskMetadataEvictionListener evictionListener =
-        new TaskMetadataEvictionListener(
+    TaskMetadataLifecycleListener lifecycleListener =
+        new TaskMetadataLifecycleListener(
             stateUpdater,
             clock,
             configuration.getMaxTaskAttempts(),
             configuration.getRetention().toMillis());
-    Consumer<TaskMetadata> metadataConsumer = factory.taskMetadataConsumer(evictionListener);
+    Consumer<TaskMetadata> metadataConsumer = factory.taskMetadataConsumer(lifecycleListener);
     closeables.add(metadataConsumer);
 
     return new TaskWorker(executor, closeables, configuration.getShutdownTimeout().toMillis());

@@ -19,6 +19,7 @@ import static io.streamnative.pulsar.recipes.task.TestUtils.completedState;
 import static io.streamnative.pulsar.recipes.task.TestUtils.failedState;
 import static io.streamnative.pulsar.recipes.task.TestUtils.newState;
 import static io.streamnative.pulsar.recipes.task.TestUtils.processingState;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -39,19 +40,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TaskMetadataEvictionListenerTest {
+class TaskMetadataLifecycleListenerTest {
   private static final int MAX_ATTEMPTS = 2;
   private static final long RETENTION_MILLIS = 10L;
   @Mock private TaskMetadataUpdater metadataUpdater;
   @Mock private Clock clock;
   @Mock private Consumer<TaskMetadata> consumer;
   @Mock private Message<TaskMetadata> message;
-  private TaskMetadataEvictionListener taskMetadataEvictionListener;
+  private TaskMetadataLifecycleListener taskMetadataLifecycleListener;
 
   @BeforeEach
   void beforeEach() {
-    taskMetadataEvictionListener =
-        new TaskMetadataEvictionListener(metadataUpdater, clock, MAX_ATTEMPTS, RETENTION_MILLIS);
+    taskMetadataLifecycleListener =
+        new TaskMetadataLifecycleListener(metadataUpdater, clock, MAX_ATTEMPTS, RETENTION_MILLIS);
   }
 
   @ParameterizedTest
@@ -59,7 +60,7 @@ class TaskMetadataEvictionListenerTest {
   void nonTerminalProcessingState(TaskMetadata taskMetadata) throws Exception {
     when(message.getValue()).thenReturn(taskMetadata);
 
-    taskMetadataEvictionListener.received(consumer, message);
+    taskMetadataLifecycleListener.received(consumer, message);
 
     verify(consumer).acknowledge(message);
     verify(metadataUpdater, never()).delete(taskMetadata);
@@ -71,9 +72,9 @@ class TaskMetadataEvictionListenerTest {
     when(message.getValue()).thenReturn(taskMetadata);
     when(clock.millis()).thenReturn(RETENTION_MILLIS - 1L);
 
-    taskMetadataEvictionListener.received(consumer, message);
+    taskMetadataLifecycleListener.received(consumer, message);
 
-    verify(consumer).negativeAcknowledge(message);
+    verify(consumer).reconsumeLater(message, 1L, MILLISECONDS);
     verify(metadataUpdater, never()).delete(taskMetadata);
   }
 
@@ -83,7 +84,7 @@ class TaskMetadataEvictionListenerTest {
     when(message.getValue()).thenReturn(taskMetadata);
     when(clock.millis()).thenReturn(RETENTION_MILLIS + 1L);
 
-    taskMetadataEvictionListener.received(consumer, message);
+    taskMetadataLifecycleListener.received(consumer, message);
 
     verify(metadataUpdater).delete(taskMetadata);
   }
@@ -93,7 +94,7 @@ class TaskMetadataEvictionListenerTest {
     doThrow(PulsarClientException.class).when(consumer).acknowledge(message);
 
     assertThatNoException()
-        .isThrownBy(() -> taskMetadataEvictionListener.received(consumer, message));
+        .isThrownBy(() -> taskMetadataLifecycleListener.received(consumer, message));
   }
 
   private static Stream<TaskMetadata> nonTerminalProcessingStates() {

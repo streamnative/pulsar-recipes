@@ -39,7 +39,7 @@ public class TaskWorkerConfiguration<T, R> {
   private final Duration keepAliveInterval;
   private final Duration taskRedeliveryDelay;
   private final Duration retention;
-  private final Duration expirationRedeliveryDelay;
+  //  private final Duration expirationRedeliveryDelay;
   private final Duration shutdownTimeout;
 
   public static <T, R> Builder<T, R> builder(Schema<T> taskSchema, Schema<R> resultSchema) {
@@ -58,7 +58,7 @@ public class TaskWorkerConfiguration<T, R> {
     private Duration keepAliveInterval = Duration.ofMinutes(5);
     private Duration taskRedeliveryDelay = Duration.ofMinutes(5);
     private Duration retention = Duration.ofDays(1);
-    private Duration expirationRedeliveryDelay = Duration.ofMinutes(5);
+    //    private Duration expirationRedeliveryDelay = Duration.ofMinutes(5);
     private Duration shutdownTimeout = Duration.ofSeconds(10);
 
     /**
@@ -150,21 +150,24 @@ public class TaskWorkerConfiguration<T, R> {
       return this;
     }
 
-    /**
-     * The delay at which task processing state should be redelivered when tasks have reached a
-     * terminal state (either completed or failed with maximum attempts) but not yet expired the
-     * retention period.
-     *
-     * @param expirationRedeliveryDelay The expiration redelivery delay
-     * @return this TaskWorkerBuilder instance
-     */
-    public Builder<T, R> expirationRedeliveryDelay(@NonNull Duration expirationRedeliveryDelay) {
-      checkArgument(
-          expirationRedeliveryDelay.compareTo(ZERO) > 0,
-          "expirationRedeliveryDelay must be greater than zero");
-      this.expirationRedeliveryDelay = expirationRedeliveryDelay;
-      return this;
-    }
+    //    /**
+    //     * The delay at which task processing state should be redelivered when tasks have reached
+    // a
+    //     * terminal state (either completed or failed with maximum attempts) but not yet expired
+    // the
+    //     * retention period.
+    //     *
+    //     * @param expirationRedeliveryDelay The expiration redelivery delay
+    //     * @return this TaskWorkerBuilder instance
+    //     */
+    //    public Builder<T, R> expirationRedeliveryDelay(@NonNull Duration
+    // expirationRedeliveryDelay) {
+    //      checkArgument(
+    //          expirationRedeliveryDelay.compareTo(ZERO) > 0,
+    //          "expirationRedeliveryDelay must be greater than zero");
+    //      this.expirationRedeliveryDelay = expirationRedeliveryDelay;
+    //      return this;
+    //    }
 
     /**
      * How long to wait for the currently running task to complete before forcibly terminating it on
@@ -202,7 +205,7 @@ public class TaskWorkerConfiguration<T, R> {
           keepAliveInterval,
           taskRedeliveryDelay,
           retention,
-          expirationRedeliveryDelay,
+          //          expirationRedeliveryDelay,
           shutdownTimeout);
     }
   }
