@@ -84,7 +84,7 @@ class MessagingFactoryTest {
   @Test
   void stateConsumer(
       @Mock ConsumerBuilder<TaskMetadata> builder,
-      @Mock TaskMetadataLifecycleListener listener,
+      @Mock TaskMetadataEvictionListener listener,
       @Mock Consumer<TaskMetadata> consumer)
       throws PulsarClientException {
     when(client.newConsumer(metadataSchema)).thenReturn(builder);

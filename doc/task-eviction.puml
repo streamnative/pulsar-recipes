@@ -18,31 +18,31 @@
 
 skinparam defaultTextAlignment center
 
-title Expiration
+title Metadata Eviction Consumer
 
 start
-:receive\nstate;
-switch (receive\nstate)
+:receive\nmetadata;
+switch (metadata\nstate)
 case (COMPLETED)
     if (expired ?) then (yes)
-        #DDDDFF:tombstone\nstate;
-        #DDFFDD:acknowledge\nstate;
+        #DDDDFF:evict\nmetadata;
+        #DDFFDD:acknowledge;
     else (no)
-        #FFDDDD:negative\nacknowledge\ntask;
+        #FFDDDD:schedule\nredelivery\nat eviction\ntime;
     endif
 case (FAILED)
-    if (max\nattempts\nreached ?) then (yes)
-        #DDFFDD:acknowledge\ntask;
-    else (no)
+    if (max task\nattempts\nreached ?) then (no)
+        #DDFFDD:acknowledge;
+    else (yes)
         if (expired ?) then (yes)
-            #DDDDFF:tombstone\nstate;
-            #DDFFDD:acknowledge\nstate;
+            #DDDDFF:evict\nmetadata;
+            #DDFFDD:acknowledge;
         else (no)
-            #FFDDDD:negative\nacknowledge\ntask;
+            #FFDDDD:schedule\nredelivery\nat eviction\ntime;
         endif
     endif
 case (OTHER)
-    #DDFFDD:acknowledge\nstate;
+    #DDFFDD:acknowledge;
 endswitch
 end
 

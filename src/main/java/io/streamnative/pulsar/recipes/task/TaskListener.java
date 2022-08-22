@@ -43,13 +43,13 @@ public class TaskListener<T, R> implements MessageListener<T> {
     try {
       switch (metadata.getState()) {
         case NEW:
-          handleTask(taskConsumer, taskMessage, metadata);
+          handleNew(taskConsumer, taskMessage, metadata);
           break;
         case PROCESSING:
           handleProcessing(taskConsumer, taskMessage, metadata);
           break;
         case COMPLETED:
-          taskConsumer.acknowledge(taskMessage);
+          handleCompleted(taskConsumer, taskMessage);
           break;
         case FAILED:
           handleFailed(taskConsumer, taskMessage, metadata);
@@ -66,7 +66,7 @@ public class TaskListener<T, R> implements MessageListener<T> {
     }
   }
 
-  private void handleTask(Consumer<T> consumer, Message<T> taskMessage, TaskMetadata taskMetadata)
+  private void handleNew(Consumer<T> consumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
     TaskMetadata updatedMetadata = taskMetadata.process(clock.millis());
     taskMetadataUpdater.update(updatedMetadata);
@@ -92,12 +92,12 @@ public class TaskListener<T, R> implements MessageListener<T> {
 
   private void handleProcessing(Consumer<T> consumer, Message<T> message, TaskMetadata taskMetadata)
       throws PulsarClientException {
-    long lastUpdatedAgeMillis = clock.millis() - taskMetadata.getLastUpdated();
-    if (lastUpdatedAgeMillis > keepAliveIntervalMillis * 2) {
+    long millisSinceLastUpdate = clock.millis() - taskMetadata.getLastUpdated();
+    if (millisSinceLastUpdate > keepAliveIntervalMillis * 2) {
       if (taskMetadata.getAttempts() < maxTaskAttempts) {
-        handleTask(consumer, message, taskMetadata);
+        handleNew(consumer, message, taskMetadata);
       } else {
-        taskMetadataUpdater.update(taskMetadata.fail(clock.millis(), "Task processing is stale"));
+        taskMetadataUpdater.update(taskMetadata.fail(clock.millis(), "Task processing timed out."));
         consumer.acknowledge(message);
       }
     } else {
@@ -105,11 +105,15 @@ public class TaskListener<T, R> implements MessageListener<T> {
     }
   }
 
+  private void handleCompleted(Consumer<T> taskConsumer, Message<T> taskMessage) throws PulsarClientException {
+    taskConsumer.acknowledge(taskMessage);
+  }
+
   private void handleFailed(
       Consumer<T> taskConsumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
     if (taskMetadata.getAttempts() < maxTaskAttempts) {
-      handleTask(taskConsumer, taskMessage, taskMetadata);
+      handleNew(taskConsumer, taskMessage, taskMetadata);
     } else {
       taskConsumer.acknowledge(taskMessage);
     }

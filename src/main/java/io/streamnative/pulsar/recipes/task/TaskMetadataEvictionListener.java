@@ -28,7 +28,7 @@ import org.apache.pulsar.client.api.PulsarClientException;
 
 @Slf4j
 @RequiredArgsConstructor
-class TaskMetadataLifecycleListener implements MessageListener<TaskMetadata> {
+class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
   private final TaskMetadataUpdater metadataUpdater;
   private final Clock clock;
   private final int maxTaskAttempts;

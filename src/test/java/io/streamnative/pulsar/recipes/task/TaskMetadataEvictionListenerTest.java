@@ -40,19 +40,19 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TaskMetadataLifecycleListenerTest {
+class TaskMetadataEvictionListenerTest {
   private static final int MAX_ATTEMPTS = 2;
   private static final long RETENTION_MILLIS = 10L;
   @Mock private TaskMetadataUpdater metadataUpdater;
   @Mock private Clock clock;
   @Mock private Consumer<TaskMetadata> consumer;
   @Mock private Message<TaskMetadata> message;
-  private TaskMetadataLifecycleListener taskMetadataLifecycleListener;
+  private TaskMetadataEvictionListener taskMetadataEvictionListener;
 
   @BeforeEach
   void beforeEach() {
-    taskMetadataLifecycleListener =
-        new TaskMetadataLifecycleListener(metadataUpdater, clock, MAX_ATTEMPTS, RETENTION_MILLIS);
+    taskMetadataEvictionListener =
+        new TaskMetadataEvictionListener(metadataUpdater, clock, MAX_ATTEMPTS, RETENTION_MILLIS);
   }
 
   @ParameterizedTest
@@ -60,7 +60,7 @@ class TaskMetadataLifecycleListenerTest {
   void nonTerminalProcessingState(TaskMetadata taskMetadata) throws Exception {
     when(message.getValue()).thenReturn(taskMetadata);
 
-    taskMetadataLifecycleListener.received(consumer, message);
+    taskMetadataEvictionListener.received(consumer, message);
 
     verify(consumer).acknowledge(message);
     verify(metadataUpdater, never()).delete(taskMetadata);
@@ -72,7 +72,7 @@ class TaskMetadataLifecycleListenerTest {
     when(message.getValue()).thenReturn(taskMetadata);
     when(clock.millis()).thenReturn(RETENTION_MILLIS - 1L);
 
-    taskMetadataLifecycleListener.received(consumer, message);
+    taskMetadataEvictionListener.received(consumer, message);
 
     verify(consumer).reconsumeLater(message, 1L, MILLISECONDS);
     verify(metadataUpdater, never()).delete(taskMetadata);
@@ -84,7 +84,7 @@ class TaskMetadataLifecycleListenerTest {
     when(message.getValue()).thenReturn(taskMetadata);
     when(clock.millis()).thenReturn(RETENTION_MILLIS + 1L);
 
-    taskMetadataLifecycleListener.received(consumer, message);
+    taskMetadataEvictionListener.received(consumer, message);
 
     verify(metadataUpdater).delete(taskMetadata);
   }
@@ -94,7 +94,7 @@ class TaskMetadataLifecycleListenerTest {
     doThrow(PulsarClientException.class).when(consumer).acknowledge(message);
 
     assertThatNoException()
-        .isThrownBy(() -> taskMetadataLifecycleListener.received(consumer, message));
+        .isThrownBy(() -> taskMetadataEvictionListener.received(consumer, message));
   }
 
   private static Stream<TaskMetadata> nonTerminalProcessingStates() {

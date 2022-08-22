@@ -49,7 +49,7 @@ class MessagingFactory<T> {
         .create();
   }
 
-  Consumer<TaskMetadata> taskMetadataConsumer(TaskMetadataLifecycleListener lifecycleListener)
+  Consumer<TaskMetadata> taskMetadataConsumer(TaskMetadataEvictionListener lifecycleListener)
       throws PulsarClientException {
     // TODO state consumer ackTimeout
     return client

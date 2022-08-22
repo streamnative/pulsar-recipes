@@ -35,22 +35,22 @@ PulsarClient client = PulsarClient.builder()
     .serviceUrl("pulsar://localhost:6650")
     .build();
 
-Producer<Task> producer = client.newProducer(Schema.JSON(Task.class))
+Producer<Task> taskProducer = client.newProducer(Schema.JSON(Task.class))
     .topic("tasks")
     .enableBatching(false)
     .create();
 
-Consumer<TaskMetadata> consumer = client.newConsumer(Schema.JSON(TaskMetadata.class))
+Consumer<TaskMetadata> metadataConsumer = client.newConsumer(Schema.JSON(TaskMetadata.class))
     .topic("tasks-metadata")
     .subscriptionName("results-subscription")
     .subscribe();
 
-String messageId = producer.send(new Task("Dave")).toString();
+String messageId = taskProducer.send(new Task("Dave")).toString();
 
 Schema<Result> schema = Schema.JSON(Result.class);
 
-while(true) {
-    Message<TaskProcessingState> message = consumer.receive();
+while (true) {
+    Message<TaskMetadata> message = metadataConsumer.receive();
         TaskMetadata taskMetadata = message.getValue();
     if (taskMetadata.getMessageId().equals(messageId)
         && taskMetadata.getState() == State.COMPLETED) {
