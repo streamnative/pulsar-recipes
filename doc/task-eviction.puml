@@ -26,23 +26,23 @@ switch (metadata\nstate)
 case (COMPLETED)
     if (expired ?) then (yes)
         #DDDDFF:evict\nmetadata;
-        #DDFFDD:acknowledge;
+        #DDFFDD:acknowledge\nmetadata;
     else (no)
         #FFDDDD:schedule\nredelivery\nat eviction\ntime;
     endif
 case (FAILED)
     if (max task\nattempts\nreached ?) then (no)
-        #DDFFDD:acknowledge;
+        #DDFFDD:acknowledge\nmetadata;
     else (yes)
         if (expired ?) then (yes)
             #DDDDFF:evict\nmetadata;
-            #DDFFDD:acknowledge;
+            #DDFFDD:acknowledge\nmetadata;
         else (no)
             #FFDDDD:schedule\nredelivery\nat eviction\ntime;
         endif
     endif
 case (OTHER)
-    #DDFFDD:acknowledge;
+    #DDFFDD:acknowledge\nmetadata;
 endswitch
 end
 
