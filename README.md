@@ -10,9 +10,15 @@
 
 [//]: # (TODO README Long Running Tasks description)
 
+#### Terminology
+* **Process**: An actionable implementation of work that takes input and yields an output.
+* **Task**: A specific set of inputs that will have a process applied to them to yield a result.
+* **Metadata**: Data pertaining to the execution of a process on a given task.
+* **Worker**: A node that consumes tasks and processes them.
+* **Client**: A participant that submits tasks for processing and consumes the results. 
 #### Example
 
-The following example demonstrates a (not-so-long-running) greeter task.
+The following example demonstrates a (not-so-long-running) greeter process.
 
 ##### Shared data structures
 
@@ -66,7 +72,7 @@ PulsarClient client = PulsarClient.builder()
     .serviceUrl("pulsar://localhost:6650")
     .build();
 
-TaskProcessor<Task, Result> taskProcessor = task -> new Result("Hello " + task.getName());
+TaskProcessor<Task, Result> process = process -> new Result("Hello " + process.getName());
 
 TaskWorkerConfiguration<Task, Result> configuration = TaskWorkerConfiguration
     .builder(Schema.JSON(Task.class), Schema.JSON(Result.class))
@@ -74,7 +80,7 @@ TaskWorkerConfiguration<Task, Result> configuration = TaskWorkerConfiguration
     .subscription("subscription")
     .build();
 
-TaskWorker worker = TaskWorker.create(client, taskProcessor, configuration);
+TaskWorker worker = TaskWorker.create(client, process, configuration);
 ```
 
 ## Build
