@@ -24,27 +24,33 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import io.streamnative.pulsar.recipes.task.TaskHandler.KeepAlive;
-import java.util.concurrent.ExecutorService;
+import io.streamnative.pulsar.recipes.task.ProcessExecutor.KeepAlive;
+import java.time.Clock;
+import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class TaskHandlerTest {
-  private final ExecutorService executor = Executors.newSingleThreadExecutor();
-  @Mock private TaskProcessor<String, String> taskProcessor;
+class ProcessExecutorTest {
+  private static final Optional<Duration> NoMaxDuration = Optional.empty();
+  private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+  @Mock private Process<String, String> process;
   @Mock private KeepAlive keepAlive;
+  @Mock private Clock clock;
 
   @Test
   void simpleSuccess() throws Exception {
-    TaskHandler<String, String> taskHandler = new TaskHandler<>(executor, taskProcessor, 100L);
+    ProcessExecutor<String, String> processExecutor =
+        new ProcessExecutor<>(executor, process, clock, 100L);
 
-    when(taskProcessor.process(TASK)).thenReturn(RESULT);
+    when(process.apply(TASK)).thenReturn(RESULT);
 
-    String result = taskHandler.handleTask(TASK, keepAlive);
+    String result = processExecutor.execute(TASK, NoMaxDuration, keepAlive);
 
     assertThat(result).isEqualTo(RESULT);
     verify(keepAlive, never()).update();
@@ -52,12 +58,13 @@ class TaskHandlerTest {
 
   @Test
   void processorThrowsException() throws Exception {
-    TaskHandler<String, String> taskHandler = new TaskHandler<>(executor, taskProcessor, 100L);
+    ProcessExecutor<String, String> processExecutor =
+        new ProcessExecutor<>(executor, process, clock, 100L);
 
-    when(taskProcessor.process(TASK)).thenThrow(new Exception("failed"));
+    when(process.apply(TASK)).thenThrow(new Exception("failed"));
 
-    assertThatExceptionOfType(TaskException.class)
-        .isThrownBy(() -> taskHandler.handleTask(TASK, keepAlive))
+    assertThatExceptionOfType(ProcessException.class)
+        .isThrownBy(() -> processExecutor.execute(TASK, NoMaxDuration, keepAlive))
         .withCauseExactlyInstanceOf(Exception.class)
         .havingCause()
         .withMessage("failed");
@@ -66,16 +73,17 @@ class TaskHandlerTest {
 
   @Test
   void processorHasDelay() throws Exception {
-    TaskHandler<String, String> taskHandler = new TaskHandler<>(executor, taskProcessor, 75L);
+    ProcessExecutor<String, String> processExecutor =
+        new ProcessExecutor<>(executor, process, clock, 75L);
 
-    when(taskProcessor.process(TASK))
+    when(process.apply(TASK))
         .thenAnswer(
             __ -> {
               Thread.sleep(100L);
               return RESULT;
             });
 
-    String result = taskHandler.handleTask(TASK, keepAlive);
+    String result = processExecutor.execute(TASK, NoMaxDuration, keepAlive);
 
     assertThat(result).isEqualTo(RESULT);
     verify(keepAlive, times(1)).update();
@@ -83,9 +91,10 @@ class TaskHandlerTest {
 
   @Test
   void processorInterrupted() throws Exception {
-    TaskHandler<String, String> taskHandler = new TaskHandler<>(executor, taskProcessor, 100L);
+    ProcessExecutor<String, String> processExecutor =
+        new ProcessExecutor<>(executor, process, clock, 100L);
 
-    when(taskProcessor.process(TASK))
+    when(process.apply(TASK))
         .thenAnswer(
             i -> {
               Thread.currentThread().interrupt();
@@ -93,8 +102,8 @@ class TaskHandlerTest {
               return RESULT;
             });
 
-    assertThatExceptionOfType(TaskException.class)
-        .isThrownBy(() -> taskHandler.handleTask(TASK, keepAlive))
+    assertThatExceptionOfType(ProcessException.class)
+        .isThrownBy(() -> processExecutor.execute(TASK, NoMaxDuration, keepAlive))
         .withCauseExactlyInstanceOf(InterruptedException.class);
     verify(keepAlive, never()).update();
   }

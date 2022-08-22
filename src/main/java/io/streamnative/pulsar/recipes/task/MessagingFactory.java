@@ -51,19 +51,20 @@ class MessagingFactory<T> {
 
   Consumer<TaskMetadata> taskMetadataConsumer(TaskMetadataEvictionListener lifecycleListener)
       throws PulsarClientException {
-    // TODO state consumer ackTimeout
     return client
         .newConsumer(metadataSchema)
         .topic(configuration.getMetadataTopic())
         .subscriptionName(configuration.getSubscription())
         .subscriptionType(Shared)
+        // we expect to be ACKing metadata every keepAliveInterval
+        .ackTimeout(configuration.getKeepAliveInterval().toMillis() * 2, MILLISECONDS)
         .enableRetry(true)
         .messageListener(lifecycleListener)
         .subscribe();
   }
 
   Consumer<T> taskConsumer(TaskListener<T, ?> taskListener) throws PulsarClientException {
-    // TODO task consumer ackTimeout
+    // ACK Timeout intentionally 0 (i.e. ACK TOs disabled)
     return client
         .newConsumer(configuration.getTaskSchema())
         .topic(configuration.getTaskTopic())

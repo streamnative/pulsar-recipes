@@ -15,6 +15,6 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-public interface TaskProcessor<T, R> {
-  R process(T task) throws Exception;
+public interface Process<T, R> {
+  R apply(T task) throws Exception;
 }

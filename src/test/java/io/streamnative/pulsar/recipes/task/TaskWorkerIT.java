@@ -68,11 +68,7 @@ public class TaskWorkerIT {
     client = PulsarClient.builder().serviceUrl(pulsar.getPulsarBrokerUrl()).build();
 
     taskProducer =
-        client
-            .newProducer(Schema.STRING)
-            .topic(taskTopic)
-            .enableBatching(false) // TODO very important to document
-            .create();
+        client.newProducer(Schema.STRING).topic(taskTopic).enableBatching(false).create();
     metadataConsumer =
         client
             .newConsumer(Schema.JSON(TaskMetadata.class))
@@ -95,7 +91,7 @@ public class TaskWorkerIT {
     String taskTopic = randomUUID().toString();
     createResources(taskTopic);
 
-    TaskProcessor<String, String> taskProcessor = task -> "bar";
+    Process<String, String> process = task -> "bar";
 
     TaskWorkerConfiguration<String, String> configuration =
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
@@ -106,7 +102,7 @@ public class TaskWorkerIT {
 
     @SuppressWarnings("unused")
     @Cleanup
-    TaskWorker ignore = TaskWorker.create(client, taskProcessor, configuration);
+    TaskWorker ignore = TaskWorker.create(client, process, configuration);
 
     long before = clock.millis();
     String messageId = taskProducer.send("foo").toString();
@@ -148,7 +144,7 @@ public class TaskWorkerIT {
     createResources(taskTopic);
 
     AtomicBoolean succeed = new AtomicBoolean();
-    TaskProcessor<String, String> taskProcessor =
+    Process<String, String> process =
         task -> {
           if (succeed.compareAndSet(false, true)) {
             throw new Exception("failed");
@@ -165,7 +161,7 @@ public class TaskWorkerIT {
 
     @SuppressWarnings("unused")
     @Cleanup
-    TaskWorker ignore = TaskWorker.create(client, taskProcessor, configuration);
+    TaskWorker ignore = TaskWorker.create(client, process, configuration);
 
     long before = clock.millis();
     String messageId = taskProducer.send("foo").toString();
@@ -230,7 +226,7 @@ public class TaskWorkerIT {
     String taskTopic = randomUUID().toString();
     createResources(taskTopic);
 
-    TaskProcessor<String, String> taskProcessor =
+    Process<String, String> process =
         task -> {
           throw new Exception("failed");
         };
@@ -245,7 +241,7 @@ public class TaskWorkerIT {
 
     @SuppressWarnings("unused")
     @Cleanup
-    TaskWorker ignore = TaskWorker.create(client, taskProcessor, configuration);
+    TaskWorker ignore = TaskWorker.create(client, process, configuration);
 
     long before = clock.millis();
     String messageId = taskProducer.send("foo").toString();

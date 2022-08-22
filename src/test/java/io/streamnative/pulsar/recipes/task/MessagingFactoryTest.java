@@ -55,7 +55,7 @@ class MessagingFactoryTest {
   }
 
   @Test
-  void stateTableView(
+  void metadataTableView(
       @Mock TableViewBuilder<TaskMetadata> builder, @Mock TableView<TaskMetadata> tableView)
       throws PulsarClientException {
     when(client.newTableViewBuilder(metadataSchema)).thenReturn(builder);
@@ -68,7 +68,7 @@ class MessagingFactoryTest {
   }
 
   @Test
-  void stateProducer(
+  void metadataProducer(
       @Mock ProducerBuilder<TaskMetadata> builder, @Mock Producer<TaskMetadata> producer)
       throws PulsarClientException {
     when(client.newProducer(metadataSchema)).thenReturn(builder);
@@ -82,7 +82,7 @@ class MessagingFactoryTest {
   }
 
   @Test
-  void stateConsumer(
+  void metadataConsumer(
       @Mock ConsumerBuilder<TaskMetadata> builder,
       @Mock TaskMetadataEvictionListener listener,
       @Mock Consumer<TaskMetadata> consumer)
@@ -92,6 +92,8 @@ class MessagingFactoryTest {
     when(builder.subscriptionName(configuration.getSubscription())).thenReturn(builder);
     when(builder.subscriptionType(Shared)).thenReturn(builder);
     when(builder.enableRetry(true)).thenReturn(builder);
+    when(builder.ackTimeout(configuration.getKeepAliveInterval().toMillis() * 2, MILLISECONDS))
+        .thenReturn(builder);
     when(builder.messageListener(listener)).thenReturn(builder);
     when(builder.subscribe()).thenReturn(consumer);
 

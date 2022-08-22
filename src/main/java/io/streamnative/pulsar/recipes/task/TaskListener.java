@@ -17,6 +17,9 @@ package io.streamnative.pulsar.recipes.task;
 
 
 import java.time.Clock;
+import java.time.DateTimeException;
+import java.time.Duration;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Consumer;
@@ -30,7 +33,7 @@ import org.apache.pulsar.client.api.Schema;
 public class TaskListener<T, R> implements MessageListener<T> {
   private final TaskMetadataView<T> taskMetadataView;
   private final TaskMetadataUpdater taskMetadataUpdater;
-  private final TaskHandler<T, R> taskHandler;
+  private final ProcessExecutor<T, R> processExecutor;
   private final Clock clock;
   private final Schema<R> resultSchema;
   private final int maxTaskAttempts;
@@ -68,21 +71,28 @@ public class TaskListener<T, R> implements MessageListener<T> {
 
   private void handleNew(Consumer<T> consumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
+    processTask(consumer, taskMessage, taskMetadata);
+  }
+
+  private void processTask(Consumer<T> consumer, Message<T> taskMessage, TaskMetadata taskMetadata)
+      throws PulsarClientException {
     TaskMetadata updatedMetadata = taskMetadata.process(clock.millis());
     taskMetadataUpdater.update(updatedMetadata);
     TaskMetadata keepAliveState = updatedMetadata;
     try {
       log.debug("Task processing for message {}", taskMessage.getMessageId());
+
       R result =
-          taskHandler.handleTask(
+          processExecutor.execute(
               taskMessage.getValue(),
+              getMaxTaskDuration(taskMessage),
               () -> taskMetadataUpdater.update(keepAliveState.keepAlive(clock.millis())));
       log.debug("Task processed for message {}", taskMessage.getMessageId());
       byte[] encodedResult = resultSchema.encode(result);
       updatedMetadata = updatedMetadata.complete(clock.millis(), encodedResult);
       taskMetadataUpdater.update(updatedMetadata);
       consumer.acknowledge(taskMessage);
-    } catch (TaskException e) {
+    } catch (ProcessException e) {
       log.error("Error while handling task: {}", updatedMetadata, e);
       handleError(consumer, taskMessage, updatedMetadata, e.getCause().getMessage());
     } catch (Exception e) {
@@ -90,22 +100,25 @@ public class TaskListener<T, R> implements MessageListener<T> {
     }
   }
 
-  private void handleProcessing(Consumer<T> consumer, Message<T> message, TaskMetadata taskMetadata)
+  private void handleProcessing(
+      Consumer<T> consumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
     long millisSinceLastUpdate = clock.millis() - taskMetadata.getLastUpdated();
     if (millisSinceLastUpdate > keepAliveIntervalMillis * 2) {
       if (taskMetadata.getAttempts() < maxTaskAttempts) {
-        handleNew(consumer, message, taskMetadata);
+        processTask(consumer, taskMessage, taskMetadata);
       } else {
-        taskMetadataUpdater.update(taskMetadata.fail(clock.millis(), "Task processing timed out."));
-        consumer.acknowledge(message);
+        taskMetadataUpdater.update(
+            taskMetadata.fail(clock.millis(), "All attempts to process task failed."));
+        consumer.acknowledge(taskMessage);
       }
     } else {
-      consumer.negativeAcknowledge(message);
+      consumer.negativeAcknowledge(taskMessage);
     }
   }
 
-  private void handleCompleted(Consumer<T> taskConsumer, Message<T> taskMessage) throws PulsarClientException {
+  private void handleCompleted(Consumer<T> taskConsumer, Message<T> taskMessage)
+      throws PulsarClientException {
     taskConsumer.acknowledge(taskMessage);
   }
 
@@ -113,7 +126,7 @@ public class TaskListener<T, R> implements MessageListener<T> {
       Consumer<T> taskConsumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
     if (taskMetadata.getAttempts() < maxTaskAttempts) {
-      handleNew(taskConsumer, taskMessage, taskMetadata);
+      processTask(taskConsumer, taskMessage, taskMetadata);
     } else {
       taskConsumer.acknowledge(taskMessage);
     }
@@ -128,5 +141,18 @@ public class TaskListener<T, R> implements MessageListener<T> {
     TaskMetadata failedTaskMetadata = taskMetadata.fail(clock.millis(), failureReason);
     taskMetadataUpdater.update(failedTaskMetadata);
     handleFailed(taskConsumer, taskMessage, failedTaskMetadata);
+  }
+
+  private Optional<Duration> getMaxTaskDuration(Message<T> message) {
+    Optional<String> header = Headers.MAX_TASK_DURATION.from(message);
+    try {
+      return header.map(Duration::parse);
+    } catch (DateTimeException e) {
+      log.warn(
+          "Message {} specified invalid max task duration header: {}",
+          message.getMessageId(),
+          header);
+    }
+    return Optional.empty();
   }
 }

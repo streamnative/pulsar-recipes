@@ -37,9 +37,9 @@ class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
   @Override
   public void received(
       Consumer<TaskMetadata> metadataConsumer, Message<TaskMetadata> metadataMessage) {
-    log.debug("Received: {}", metadataMessage.getValue());
     try {
       TaskMetadata metadata = metadataMessage.getValue();
+      log.debug("Received: {}", metadata);
       if (metadata == null) { // tombstone
         metadataConsumer.acknowledge(metadataMessage);
       } else {
@@ -62,7 +62,7 @@ class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
         }
       }
     } catch (PulsarClientException e) {
-      log.warn("Error while performing expiry", e);
+      log.warn("Error while processing metadata for eviction", e);
     }
   }
 

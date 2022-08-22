@@ -16,7 +16,7 @@
 package io.streamnative.pulsar.recipes.task;
 
 import static java.time.Clock.systemUTC;
-import static java.util.concurrent.Executors.newSingleThreadExecutor;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 
@@ -24,6 +24,7 @@ import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Consumer;
@@ -41,11 +42,9 @@ public class TaskWorker implements AutoCloseable {
   private final long shutdownTimeoutMillis;
 
   public static <T, R> TaskWorker create(
-      PulsarClient client,
-      TaskProcessor<T, R> taskProcessor,
-      TaskWorkerConfiguration<T, R> configuration)
+      PulsarClient client, Process<T, R> process, TaskWorkerConfiguration<T, R> configuration)
       throws PulsarClientException {
-    ExecutorService executor = newSingleThreadExecutor();
+    ScheduledExecutorService executor = newSingleThreadScheduledExecutor();
     Clock clock = systemUTC();
 
     Schema<TaskMetadata> stateSchema = Schema.JSON(TaskMetadata.class);
@@ -62,13 +61,14 @@ public class TaskWorker implements AutoCloseable {
     TaskMetadataView<T> taskMetadataView =
         new TaskMetadataView<>(metadataTableView, clock, configuration.getTaskSchema());
 
-    TaskHandler<T, R> taskHandler =
-        new TaskHandler<>(executor, taskProcessor, configuration.getKeepAliveInterval().toMillis());
+    ProcessExecutor<T, R> processExecutor =
+        new ProcessExecutor<>(
+            executor, process, clock, configuration.getKeepAliveInterval().toMillis());
     TaskListener<T, R> taskListener =
         new TaskListener<>(
             taskMetadataView,
             stateUpdater,
-            taskHandler,
+            processExecutor,
             clock,
             configuration.getResultSchema(),
             configuration.getMaxTaskAttempts(),

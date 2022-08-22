@@ -19,19 +19,19 @@
 <!--TODO fix exposing mutable state in Configuration & ProcessingState-->
 <FindBugsFilter>
   <Match>
-    <Class name="io.streamnative.pulsar.recipes.task.TaskWorkerConfiguration"/>
+    <Class name="io.streamnative.pulsar.recipes.process.TaskWorkerConfiguration"/>
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
   </Match>
   <Match>
-    <Class name="io.streamnative.pulsar.recipes.task.TaskMetadataEvictionListener"/>
+    <Class name="io.streamnative.pulsar.recipes.process.TaskMetadataEvictionListener"/>
     <Bug pattern="SE_BAD_FIELD"/>
   </Match>
   <Match>
-    <Class name="io.streamnative.pulsar.recipes.task.TaskListener"/>
+    <Class name="io.streamnative.pulsar.recipes.process.TaskListener"/>
     <Bug pattern="SE_BAD_FIELD,EI_EXPOSE_REP2"/>
   </Match>
   <Match>
-    <Class name="io.streamnative.pulsar.recipes.task.TaskMetadata"/>
+    <Class name="io.streamnative.pulsar.recipes.process.TaskMetadata"/>
     <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
   </Match>
 </FindBugsFilter>

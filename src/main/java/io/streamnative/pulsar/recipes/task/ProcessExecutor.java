@@ -17,33 +17,30 @@ package io.streamnative.pulsar.recipes.task;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
-import java.util.concurrent.CompletableFuture;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-class TaskHandler<T, R> {
-  private final Executor executor;
-  private final TaskProcessor<T, R> taskProcessor;
+class ProcessExecutor<T, R> {
+  private final ScheduledExecutorService executor;
+  private final Process<T, R> process;
+  private final Clock clock;
   private final long keepAliveIntervalMillis;
 
-  R handleTask(T task, KeepAlive keepAlive) throws TaskException {
-    CompletableFuture<R> future = new CompletableFuture<>();
-    executor.execute(
-        () -> {
-          try {
-            future.complete(taskProcessor.process(task));
-          } catch (Exception e) {
-            future.completeExceptionally(e);
-          }
-        });
-
+  R execute(T task, Optional<Duration> maxTaskDuration, KeepAlive keepAlive)
+      throws ProcessException {
+    Instant start = clock.instant();
+    ScheduledFuture<R> future = executor.schedule(() -> this.process.apply(task), 0L, MILLISECONDS);
     try {
-      // TODO have maximum runtime to force failure?
       while (!future.isDone()) {
         try {
           future.get(keepAliveIntervalMillis, MILLISECONDS);
@@ -53,16 +50,23 @@ class TaskHandler<T, R> {
           } catch (Exception e2) {
             log.warn("Failed to update keep alive", e2);
           }
+          if (maxTaskDuration.isPresent()
+              && clock.instant().isAfter(start.plus(maxTaskDuration.get()))) {
+            future.cancel(true);
+            throw new ProcessException("Task exceeded maximum execution duration - terminated.");
+          }
         }
       }
       return future.get();
+    } catch (ProcessException e) {
+      throw e;
     } catch (ExecutionException e) {
-      throw new TaskException(e.getCause());
+      throw new ProcessException(e.getCause());
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new TaskException(e);
+      throw new ProcessException(e);
     } catch (Exception e) {
-      throw new TaskException(e);
+      throw new ProcessException(e);
     }
   }
 

@@ -23,10 +23,10 @@ title Process Task
 start
 #DDDDFF:update state\nPROCESSING;
 :execute\ntask\nasync;
-while (done ?) is (not done)
+while (execution\ncomplete ?) is (no)
     :wait;
     #DDDDFF:update state\nPROCESSING;
-endwhile (done)
+endwhile (yes)
 if (success ?) then (yes)
     #DDDDFF:update state\nCOMPLETED;
     #DDFFDD:acknowledge\ntask;
