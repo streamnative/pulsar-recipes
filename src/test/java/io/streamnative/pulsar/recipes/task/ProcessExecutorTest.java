@@ -113,6 +113,27 @@ class ProcessExecutorTest {
   }
 
   @Test
+  void processorTaskWithinDuration() throws Exception {
+    Optional<Duration> oneHour = Optional.of(Duration.ofHours(1L));
+    when(clock.instant())
+        .thenReturn(Instant.ofEpochMilli(0), Instant.ofEpochMilli(MINUTES.toMillis(5)));
+    ProcessExecutor<String, String> processExecutor =
+        new ProcessExecutor<>(executor, process, clock, 100L);
+
+    when(process.apply(TASK))
+        .thenAnswer(
+            __ -> {
+              Thread.sleep(100L);
+              return RESULT;
+            });
+
+    String result = processExecutor.execute(TASK, oneHour, keepAlive);
+
+    assertThat(result).isEqualTo(RESULT);
+    verify(keepAlive, times(1)).update();
+  }
+
+  @Test
   @Timeout(value = 10, unit = SECONDS)
   void processorTaskExceedsDuration() throws Exception {
     Optional<Duration> oneHour = Optional.of(Duration.ofHours(1L));
