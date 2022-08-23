@@ -15,6 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
+import static io.streamnative.pulsar.recipes.task.Headers.MAX_TASK_DURATION;
 import static io.streamnative.pulsar.recipes.task.MessageAssert.assertMessage;
 import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
 import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
@@ -30,6 +31,7 @@ import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.Schema;
@@ -105,12 +107,13 @@ public class TaskWorkerIT {
     TaskWorker ignore = TaskWorker.create(client, process, configuration);
 
     long before = clock.millis();
-    String messageId = taskProducer.send("foo").toString();
+    MessageId messageId =
+        taskProducer.newMessage().property(MAX_TASK_DURATION.key(), "P3H").value("foo").send();
 
     Message<TaskMetadata> firstMessage = nextMessage(5);
     long now = clock.millis();
     assertMessage(firstMessage)
-        .hasKey(messageId)
+        .hasKey(messageId.toString())
         .hasMessageId(messageId)
         .hasState(PROCESSING)
         .hasCreated(before, now)
@@ -122,7 +125,7 @@ public class TaskWorkerIT {
 
     Message<TaskMetadata> secondMessage = nextMessage(5);
     assertMessage(secondMessage)
-        .hasKey(messageId)
+        .hasKey(messageId.toString())
         .hasMessageId(messageId)
         .hasState(COMPLETED)
         .hasCreated(firstMessage.getValue().getCreated())
@@ -132,7 +135,7 @@ public class TaskWorkerIT {
         .hasResult("bar", Schema.STRING)
         .hasFailureReason(null);
 
-    assertMessage(nextMessage(20)).hasKey(messageId).hasNullValue();
+    assertMessage(nextMessage(20)).hasKey(messageId.toString()).hasNullValue();
 
     assertThat(nextMessage(10)).isNull();
   }

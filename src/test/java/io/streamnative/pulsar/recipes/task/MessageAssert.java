@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.pulsar.client.api.Message;
+import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.Schema;
 
 @RequiredArgsConstructor(access = PRIVATE)
@@ -41,6 +42,11 @@ class MessageAssert {
 
   MessageAssert hasMessageId(String messageId) {
     assertThat(message.getValue().getMessageId()).isEqualTo(messageId);
+    return this;
+  }
+
+  MessageAssert hasMessageId(MessageId messageId) {
+    hasMessageId(messageId.toString());
     return this;
   }
 
