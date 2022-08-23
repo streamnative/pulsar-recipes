@@ -77,8 +77,7 @@ class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
       throws PulsarClientException {
     TaskMetadata metadata = metadataMessage.getValue();
     long intervalUntilMetadataEviction = intervalUntilMetadataEviction(metadata);
-    // TODO debug -> trace
-    log.debug("Task metadata should be evicted in {} milliseconds", intervalUntilMetadataEviction);
+    log.trace("Task metadata should be evicted in {} milliseconds", intervalUntilMetadataEviction);
     if (intervalUntilMetadataEviction > 0) {
       log.debug(
           "Task metadata not yet eligible for eviction - delaying redelivery until eviction horizon: {}",
