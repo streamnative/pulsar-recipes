@@ -31,6 +31,9 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Applies a process to a task and observes the process until it has either completed, or exceeded
  * it's allowed processing duration.
+ *
+ * @param <T> Type describing the task to be processed.
+ * @param <R> Return type yielded from the processing of the task.
  */
 @Slf4j
 @RequiredArgsConstructor

@@ -34,6 +34,9 @@ import org.apache.pulsar.client.api.Schema;
  * there is an unexpected error, or when processing is taking place and a periodic state update is
  * premature. There are no ACK/NACK timeouts and so you should expect task redeliveries only in the
  * event of consumer failure, or one of the explicit NACK conditions described earlier.
+ *
+ * @param <T> Type describing the task to be processed.
+ * @param <R> Return type yielded from the processing of the task.
  */
 @Slf4j
 @RequiredArgsConstructor
