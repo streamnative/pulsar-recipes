@@ -28,6 +28,10 @@ import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * Applies a process to a task and observes the process until it has either completed, or exceeded
+ * it's allowed processing duration.
+ */
 @Slf4j
 @RequiredArgsConstructor
 class ProcessExecutor<T, R> {

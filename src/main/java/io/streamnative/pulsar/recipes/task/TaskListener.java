@@ -28,6 +28,13 @@ import org.apache.pulsar.client.api.MessageListener;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 
+/**
+ * Handles a task's lifecycle. Tasks are ACKed when the processing on them has completed, or when
+ * we've exceeded the max number of task retires, each ending in failure. Tasks are NACKed when
+ * there is an unexpected error, or when processing is taking place and a periodic state update is
+ * premature. There are no ACK/NACK timeouts and so you should expect task redeliveries only in the
+ * event of consumer failure, or one of the explicit NACK conditions described earlier.
+ */
 @Slf4j
 @RequiredArgsConstructor
 public class TaskListener<T, R> implements MessageListener<T> {
@@ -39,6 +46,10 @@ public class TaskListener<T, R> implements MessageListener<T> {
   private final int maxTaskAttempts;
   private final long keepAliveIntervalMillis;
 
+  /**
+   * Invoked when there is a new task, or when a task is redelivered due to one of: consumer
+   * failure, unexpected error, premature keep-alive update.
+   */
   @Override
   public void received(Consumer<T> taskConsumer, Message<T> taskMessage) {
     log.debug("Received: {}", taskMessage.getMessageId());
@@ -64,17 +75,20 @@ public class TaskListener<T, R> implements MessageListener<T> {
           break;
       }
     } catch (Throwable t) {
-      log.error("Error processing task: {}", metadata, t);
+      log.error(
+          "Unexpected error when consuming task: task={}, metadata={}", taskMessage, metadata, t);
       taskConsumer.negativeAcknowledge(taskMessage);
     }
   }
 
-  private void handleNew(Consumer<T> consumer, Message<T> taskMessage, TaskMetadata taskMetadata)
+  private void handleNew(
+      Consumer<T> taskConsumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
-    processTask(consumer, taskMessage, taskMetadata);
+    processTask(taskConsumer, taskMessage, taskMetadata);
   }
 
-  private void processTask(Consumer<T> consumer, Message<T> taskMessage, TaskMetadata taskMetadata)
+  private void processTask(
+      Consumer<T> taskConsumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
     TaskMetadata updatedMetadata = taskMetadata.process(clock.millis());
     taskMetadataUpdater.update(updatedMetadata);
@@ -91,29 +105,30 @@ public class TaskListener<T, R> implements MessageListener<T> {
       byte[] encodedResult = resultSchema.encode(result);
       updatedMetadata = updatedMetadata.complete(clock.millis(), encodedResult);
       taskMetadataUpdater.update(updatedMetadata);
-      consumer.acknowledge(taskMessage);
+      taskConsumer.acknowledge(taskMessage);
     } catch (ProcessException e) {
       log.error("Error while handling task: {}", updatedMetadata, e);
-      handleError(consumer, taskMessage, updatedMetadata, e.getCause().getMessage());
+      handleError(taskConsumer, taskMessage, updatedMetadata, e.getCause().getMessage());
     } catch (Exception e) {
       log.error("Error handling task result: {}", updatedMetadata, e);
     }
   }
 
   private void handleProcessing(
-      Consumer<T> consumer, Message<T> taskMessage, TaskMetadata taskMetadata)
+      Consumer<T> taskConsumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
     long millisSinceLastUpdate = clock.millis() - taskMetadata.getLastUpdated();
     if (millisSinceLastUpdate > keepAliveIntervalMillis * 2) {
       if (taskMetadata.getAttempts() < maxTaskAttempts) {
-        processTask(consumer, taskMessage, taskMetadata);
+        processTask(taskConsumer, taskMessage, taskMetadata);
       } else {
         taskMetadataUpdater.update(
             taskMetadata.fail(clock.millis(), "All attempts to process task failed."));
-        consumer.acknowledge(taskMessage);
+        taskConsumer.acknowledge(taskMessage);
       }
     } else {
-      consumer.negativeAcknowledge(taskMessage);
+      // Premature keep-alive
+      taskConsumer.negativeAcknowledge(taskMessage);
     }
   }
 

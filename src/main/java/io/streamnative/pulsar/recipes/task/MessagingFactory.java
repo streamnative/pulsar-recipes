@@ -16,6 +16,7 @@
 package io.streamnative.pulsar.recipes.task;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.pulsar.client.api.SubscriptionType.Shared;
 
 import lombok.RequiredArgsConstructor;
@@ -32,8 +33,7 @@ class MessagingFactory<T> {
   private final Schema<TaskMetadata> metadataSchema;
   private final TaskWorkerConfiguration<T, ?> configuration;
 
-  // TODO we're going to be consuming the state events twice - once for the tableView and once for
-  // expiration
+  // We consume the state events twice - once for the tableView and once for expiration
   TableView<TaskMetadata> taskMetadataTableView() throws PulsarClientException {
     return client
         .newTableViewBuilder(metadataSchema)
@@ -49,17 +49,16 @@ class MessagingFactory<T> {
         .create();
   }
 
-  Consumer<TaskMetadata> taskMetadataConsumer(TaskMetadataEvictionListener lifecycleListener)
+  Consumer<TaskMetadata> metadataEvictionConsumer(TaskMetadataEvictionListener evictionListener)
       throws PulsarClientException {
     return client
         .newConsumer(metadataSchema)
         .topic(configuration.getMetadataTopic())
         .subscriptionName(configuration.getSubscription())
         .subscriptionType(Shared)
-        // we expect to be ACKing metadata every keepAliveInterval
-        .ackTimeout(configuration.getKeepAliveInterval().toMillis() * 2, MILLISECONDS)
+        .ackTimeout(1, SECONDS)
         .enableRetry(true)
-        .messageListener(lifecycleListener)
+        .messageListener(evictionListener)
         .subscribe();
   }
 

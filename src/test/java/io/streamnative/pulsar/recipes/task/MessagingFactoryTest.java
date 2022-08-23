@@ -97,7 +97,7 @@ class MessagingFactoryTest {
     when(builder.messageListener(listener)).thenReturn(builder);
     when(builder.subscribe()).thenReturn(consumer);
 
-    Consumer<TaskMetadata> result = messagingFactory.taskMetadataConsumer(listener);
+    Consumer<TaskMetadata> result = messagingFactory.metadataEvictionConsumer(listener);
 
     assertThat(result).isSameAs(consumer);
   }

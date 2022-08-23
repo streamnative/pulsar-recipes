@@ -34,6 +34,7 @@ import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.TableView;
 
+/** Responsible for the processing of tasks and management of resulting task metadata. */
 @Slf4j
 @RequiredArgsConstructor(access = PACKAGE)
 public class TaskWorker implements AutoCloseable {
@@ -82,7 +83,7 @@ public class TaskWorker implements AutoCloseable {
             clock,
             configuration.getMaxTaskAttempts(),
             configuration.getRetention().toMillis());
-    Consumer<TaskMetadata> metadataConsumer = factory.taskMetadataConsumer(evictionListener);
+    Consumer<TaskMetadata> metadataConsumer = factory.metadataEvictionConsumer(evictionListener);
     closeables.add(metadataConsumer);
 
     return new TaskWorker(executor, closeables, configuration.getShutdownTimeout().toMillis());

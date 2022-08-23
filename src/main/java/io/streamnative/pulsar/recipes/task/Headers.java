@@ -20,6 +20,7 @@ import java.util.Optional;
 import lombok.NonNull;
 import org.apache.pulsar.client.api.Message;
 
+/** Message headers understood my the system. */
 public enum Headers {
   /**
    * Sets the maximum length of time a task may execute for - declared as an <a

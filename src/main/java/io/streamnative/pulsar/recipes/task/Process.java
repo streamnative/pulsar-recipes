@@ -15,6 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
+/** Implementations encapsulate the work to be performed on a task. */
 public interface Process<T, R> {
   R apply(T task) throws Exception;
 }

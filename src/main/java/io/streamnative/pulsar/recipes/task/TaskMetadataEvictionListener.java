@@ -26,6 +26,12 @@ import org.apache.pulsar.client.api.Message;
 import org.apache.pulsar.client.api.MessageListener;
 import org.apache.pulsar.client.api.PulsarClientException;
 
+/**
+ * Garbage collector for task metadata. Listens to metadata changes, and acts on those that describe
+ * a task that is in a terminal state. Typically, all metadata updates will be ACKed immediately.
+ * However, in the case of metadata describing completed/failed tasks, it may be scheduled for later
+ * consumption so that a record of a task's processing is available for the retention period.
+ */
 @Slf4j
 @RequiredArgsConstructor
 class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
