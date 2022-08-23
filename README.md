@@ -2,7 +2,6 @@
 # Pulsar Recipes
 
 [//]: # (TODO README badges https://shields.io/)
-[//]: # (TODO README summary description)
 
 A cookbook of varied use-cases built atop of Apache Pulsar. The purpose of this repository is to demonstrate how Apache
 Pulsar primitives can be combined to produce useful and novel behaviours while benefiting from Pulsar's inherent
