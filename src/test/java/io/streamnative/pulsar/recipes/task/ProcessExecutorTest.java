@@ -17,6 +17,8 @@ package io.streamnative.pulsar.recipes.task;
 
 import static io.streamnative.pulsar.recipes.task.TestUtils.RESULT;
 import static io.streamnative.pulsar.recipes.task.TestUtils.TASK;
+import static java.util.concurrent.TimeUnit.MINUTES;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.never;
@@ -27,10 +29,12 @@ import static org.mockito.Mockito.when;
 import io.streamnative.pulsar.recipes.task.ProcessExecutor.KeepAlive;
 import java.time.Clock;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -96,7 +100,7 @@ class ProcessExecutorTest {
 
     when(process.apply(TASK))
         .thenAnswer(
-            i -> {
+            __ -> {
               Thread.currentThread().interrupt();
               Thread.sleep(10_000L);
               return RESULT;
@@ -106,5 +110,28 @@ class ProcessExecutorTest {
         .isThrownBy(() -> processExecutor.execute(TASK, NoMaxDuration, keepAlive))
         .withCauseExactlyInstanceOf(InterruptedException.class);
     verify(keepAlive, never()).update();
+  }
+
+  @Test
+  @Timeout(value = 10, unit = SECONDS)
+  void processorTaskExceedsDuration() throws Exception {
+    Optional<Duration> oneHour = Optional.of(Duration.ofHours(1L));
+    when(clock.instant())
+        .thenReturn(Instant.ofEpochMilli(0), Instant.ofEpochMilli(MINUTES.toMillis(65)));
+    ProcessExecutor<String, String> processExecutor =
+        new ProcessExecutor<>(executor, process, clock, 100L);
+
+    when(process.apply(TASK))
+        .thenAnswer(
+            __ -> {
+              // We expect this sleep to be interrupted
+              Thread.sleep(MINUTES.toMillis(120));
+              return RESULT;
+            });
+
+    assertThatExceptionOfType(ProcessException.class)
+        .isThrownBy(() -> processExecutor.execute(TASK, oneHour, keepAlive))
+        .withMessage("Task exceeded maximum execution duration - terminated.");
+    verify(keepAlive, times(1)).update();
   }
 }
