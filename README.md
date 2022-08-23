@@ -15,7 +15,16 @@
 * **Task**: A specific set of inputs that will have a process applied to them to yield a result.
 * **Metadata**: Data pertaining to the execution of a process on a given task.
 * **Worker**: A node that consumes tasks and processes them.
-* **Client**: A participant that submits tasks for processing and consumes the results. 
+* **Client**: A participant that submits tasks for processing and consumes the results.
+
+#### Methodology
+* Tasks are submitted to a worker queue and are consumed by tasks workers for processing. Tasks
+  are ACKed when there is no further processing to be performed on them. Tasks are NACKed in the
+  event of a processing failure. There are intentionally no ACK timeouts.
+* The state of tasks is tracked by task metadata entries. Metadata is updated whenever there is a
+  task state transition, and also with a periodical keep-alive while the task is running.
+
+
 #### Example
 
 The following example demonstrates a (not-so-long-running) greeter process.
