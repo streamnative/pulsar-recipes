@@ -66,14 +66,18 @@ Consumer<TaskMetadata> metadataConsumer = client.newConsumer(Schema.JSON(TaskMet
     .subscriptionName("results-subscription")
     .subscribe();
 
-String messageId = taskProducer.send(new Task("Dave")).toString();
+MessageId messageId = taskProducer
+    .newMessage()
+    .property(MAX_TASK_DURATION.key(), "P3H")
+    .value(new Task("Dave"))
+    .send();
 
 Schema<Result> schema = Schema.JSON(Result.class);
 
 while (true) {
     Message<TaskMetadata> message = metadataConsumer.receive();
         TaskMetadata taskMetadata = message.getValue();
-    if (taskMetadata.getMessageId().equals(messageId)
+    if (taskMetadata.getMessageId().equals(messageId.toString())
         && taskMetadata.getState() == State.COMPLETED) {
         Result result = schema.decode(taskMetadata.getResult());
     }
