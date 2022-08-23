@@ -52,12 +52,10 @@ public class TaskWorkerConfiguration<T, R> {
     private String taskTopic;
     private String stateTopic;
     private String subscription;
-    // TODO review defaults
     private int maxTaskAttempts = 3;
     private Duration keepAliveInterval = Duration.ofMinutes(5);
     private Duration taskRedeliveryDelay = Duration.ofMinutes(5);
     private Duration retention = Duration.ofDays(1);
-    //    private Duration expirationRedeliveryDelay = Duration.ofMinutes(5);
     private Duration shutdownTimeout = Duration.ofSeconds(10);
 
     /**
