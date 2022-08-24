@@ -16,7 +16,6 @@
 package io.streamnative.pulsar.recipes.task;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.pulsar.client.api.SubscriptionType.Shared;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
@@ -93,7 +92,6 @@ class MessagingFactoryTest {
     when(builder.subscriptionName(configuration.getSubscription())).thenReturn(builder);
     when(builder.subscriptionType(Shared)).thenReturn(builder);
     when(builder.enableRetry(true)).thenReturn(builder);
-    when(builder.ackTimeout(1, SECONDS)).thenReturn(builder);
     when(builder.messageListener(listener)).thenReturn(builder);
     when(builder.subscribe()).thenReturn(consumer);
 
