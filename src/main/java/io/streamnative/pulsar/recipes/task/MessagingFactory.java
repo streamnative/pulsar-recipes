@@ -16,7 +16,6 @@
 package io.streamnative.pulsar.recipes.task;
 
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.MINUTES;
 import static org.apache.pulsar.client.api.SubscriptionType.Shared;
 
 import lombok.RequiredArgsConstructor;
@@ -56,7 +55,6 @@ class MessagingFactory<T> {
         .topic(configuration.getMetadataTopic())
         .subscriptionName(configuration.getSubscription())
         .subscriptionType(Shared)
-        .ackTimeout(5, MINUTES)
         .enableRetry(true)
         .messageListener(evictionListener)
         .subscribe();
