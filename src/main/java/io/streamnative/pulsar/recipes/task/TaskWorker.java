@@ -63,8 +63,7 @@ public class TaskWorker implements AutoCloseable {
         new TaskMetadataView<>(metadataTableView, clock, configuration.getTaskSchema());
 
     ProcessExecutor<T, R> processExecutor =
-        new ProcessExecutor<>(
-            executor, process, clock, configuration.getKeepAliveInterval().toMillis());
+        new ProcessExecutor<>(executor, process, clock, configuration.getKeepAliveInterval());
     TaskListener<T, R> taskListener =
         new TaskListener<>(
             taskMetadataView,

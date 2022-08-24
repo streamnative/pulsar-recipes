@@ -21,6 +21,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -41,7 +42,7 @@ class ProcessExecutor<T, R> {
   private final ScheduledExecutorService executor;
   private final Process<T, R> process;
   private final Clock clock;
-  private final long keepAliveIntervalMillis;
+  private final Duration keepAliveInterval;
 
   R execute(T task, Optional<Duration> maxTaskDuration, KeepAlive keepAlive)
       throws ProcessException {
@@ -50,7 +51,7 @@ class ProcessExecutor<T, R> {
     try {
       while (!future.isDone()) {
         try {
-          future.get(keepAliveIntervalMillis, MILLISECONDS);
+          future.get(keepAliveInterval.toMillis(), MILLISECONDS);
         } catch (TimeoutException e) {
           try {
             keepAlive.update();
@@ -60,18 +61,17 @@ class ProcessExecutor<T, R> {
           if (maxTaskDuration.isPresent()
               && clock.instant().isAfter(start.plus(maxTaskDuration.get()))) {
             future.cancel(true);
-            throw new ProcessException("Task exceeded maximum execution duration - terminated.");
           }
         }
       }
       return future.get();
-    } catch (ProcessException e) {
-      throw e;
-    } catch (ExecutionException e) {
-      throw new ProcessException(e.getCause());
+    } catch (CancellationException e) {
+      throw new ProcessException("Task exceeded maximum execution duration - terminated.", e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
       throw new ProcessException(e);
+    } catch (ExecutionException e) {
+      throw new ProcessException(e.getCause());
     } catch (Exception e) {
       throw new ProcessException(e);
     }
