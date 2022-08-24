@@ -151,8 +151,7 @@ class ProcessExecutorTest {
 
     assertThatExceptionOfType(ProcessException.class)
         .isThrownBy(() -> processExecutor.execute(TASK, oneHour, keepAlive))
-        .withMessage("Task exceeded maximum execution duration - terminated.")
         .withCauseExactlyInstanceOf(CancellationException.class);
-    verify(keepAlive, times(1)).update();
+    verify(keepAlive, never()).update();
   }
 }

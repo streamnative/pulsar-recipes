@@ -104,13 +104,15 @@ class TaskListenerTest {
     when(message.getValue()).thenReturn(TASK);
     when(clock.millis()).thenReturn(1L, 2L);
     when(processExecutor.execute(eq(TASK), eq(NoMaxDuration), any()))
-        .thenThrow(new ProcessException(new Exception(FAILURE_REASON)));
+        .thenThrow(new ProcessException(FAILURE_REASON, new Exception(FAILURE_REASON)));
 
     taskListener.received(consumer, message);
 
     InOrder inOrder = inOrder(metadataUpdater, consumer);
     inOrder.verify(metadataUpdater).update(taskMetadata.keepAlive(1L));
-    inOrder.verify(metadataUpdater).update(taskMetadata.fail(2L, FAILURE_REASON));
+    inOrder
+        .verify(metadataUpdater)
+        .update(taskMetadata.fail(2L, FAILURE_REASON + ": " + FAILURE_REASON));
     inOrder.verify(consumer).acknowledge(message);
   }
 

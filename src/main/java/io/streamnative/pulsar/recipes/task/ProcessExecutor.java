@@ -53,27 +53,28 @@ class ProcessExecutor<T, R> {
         try {
           future.get(keepAliveInterval.toMillis(), MILLISECONDS);
         } catch (TimeoutException e) {
-          try {
-            keepAlive.update();
-          } catch (Exception e2) {
-            log.warn("Failed to update keep alive", e2);
-          }
           if (maxTaskDuration.isPresent()
               && clock.instant().isAfter(start.plus(maxTaskDuration.get()))) {
             future.cancel(true);
+          } else {
+            try {
+              keepAlive.update();
+            } catch (Exception e2) {
+              log.warn("Failed to update keep alive", e2);
+            }
           }
         }
       }
       return future.get();
     } catch (CancellationException e) {
-      throw new ProcessException("Task exceeded maximum execution duration - terminated.", e);
+      throw new ProcessException("Process was cancelled", e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new ProcessException(e);
+      throw new ProcessException("Task worker thread interrupted", e);
     } catch (ExecutionException e) {
-      throw new ProcessException(e.getCause());
+      throw new ProcessException("Processing error", e.getCause());
     } catch (Exception e) {
-      throw new ProcessException(e);
+      throw new ProcessException("Unexpected error in executor", e);
     }
   }
 

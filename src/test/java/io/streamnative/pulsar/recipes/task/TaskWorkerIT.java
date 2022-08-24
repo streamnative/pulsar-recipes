@@ -20,12 +20,14 @@ import static io.streamnative.pulsar.recipes.task.MessageAssert.assertMessage;
 import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
 import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
 import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;
+import static java.util.Arrays.asList;
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Clock;
 import java.time.Duration;
+import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
@@ -85,8 +87,6 @@ public class TaskWorkerIT {
     metadataConsumer.close();
   }
 
-  Duration d = Duration.ofMillis(20);
-
   @Test
   @Timeout(30)
   void success() throws Exception {
@@ -99,7 +99,7 @@ public class TaskWorkerIT {
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
-            .retention(d)
+            .retention(Duration.ofSeconds(1))
             .build();
 
     @SuppressWarnings("unused")
@@ -108,7 +108,11 @@ public class TaskWorkerIT {
 
     long before = clock.millis();
     MessageId messageId =
-        taskProducer.newMessage().property(MAX_TASK_DURATION.key(), "P3H").value("foo").send();
+        taskProducer
+            .newMessage()
+            .property(MAX_TASK_DURATION.key(), MAX_TASK_DURATION.of("PT3H"))
+            .value("foo")
+            .send();
 
     Message<TaskMetadata> firstMessage = nextMessage(5);
     long now = clock.millis();
@@ -159,7 +163,7 @@ public class TaskWorkerIT {
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
-            .retention(d)
+            .retention(Duration.ofSeconds(1))
             .build();
 
     @SuppressWarnings("unused")
@@ -192,7 +196,7 @@ public class TaskWorkerIT {
         .hasAttempts(1)
         .hasTask("foo", Schema.STRING)
         .hasResult(null, Schema.STRING)
-        .hasFailureReason("failed");
+        .hasFailureReason("Processing error: failed");
 
     Message<TaskMetadata> thirdMessage = nextMessage(5);
     assertMessage(thirdMessage)
@@ -239,7 +243,7 @@ public class TaskWorkerIT {
             .taskTopic(taskTopic)
             .subscription("subscription")
             .maxTaskAttempts(1)
-            .retention(d)
+            .retention(Duration.ofSeconds(1))
             .build();
 
     @SuppressWarnings("unused")
@@ -272,9 +276,100 @@ public class TaskWorkerIT {
         .hasAttempts(1)
         .hasTask("foo", Schema.STRING)
         .hasResult(null, Schema.STRING)
-        .hasFailureReason("failed");
+        .hasFailureReason("Processing error: failed");
 
     assertMessage(nextMessage(20)).hasKey(messageId).hasNullValue();
+
+    assertThat(nextMessage(10)).isNull();
+  }
+
+  @Test
+  @Timeout(30)
+  void firstAttemptExceedsMaxDuration() throws Exception {
+    String taskTopic = randomUUID().toString();
+    createResources(taskTopic);
+    Process<String, String> process =
+        new Process<String, String>() {
+          private final Iterator<Integer> durations = asList(6, 1).iterator();
+
+          @Override
+          public String apply(String task) throws Exception {
+            Thread.sleep(SECONDS.toMillis(durations.next()));
+            return "bar";
+          }
+        };
+
+    TaskWorkerConfiguration<String, String> configuration =
+        TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
+            .taskTopic(taskTopic)
+            .subscription("subscription")
+            .maxTaskAttempts(2)
+            .retention(Duration.ofSeconds(1))
+            .keepAliveInterval(Duration.ofSeconds(4))
+            .build();
+
+    @SuppressWarnings("unused")
+    @Cleanup
+    TaskWorker ignore = TaskWorker.create(client, process, configuration);
+
+    long before = clock.millis();
+    MessageId messageId =
+        taskProducer
+            .newMessage()
+            .property(MAX_TASK_DURATION.key(), MAX_TASK_DURATION.of("PT3S"))
+            .value("foo")
+            .send();
+
+    Message<TaskMetadata> firstMessage = nextMessage(5);
+    long now = clock.millis();
+    assertMessage(firstMessage)
+        .hasKey(messageId.toString())
+        .hasMessageId(messageId)
+        .hasState(PROCESSING)
+        .hasCreated(before, now)
+        .hasLastUpdated(before, now)
+        .hasAttempts(1)
+        .hasTask("foo", Schema.STRING)
+        .hasResult(null, Schema.STRING)
+        .hasFailureReason(null);
+
+    Message<TaskMetadata> secondMessage = nextMessage(20);
+    assertMessage(secondMessage)
+        .hasKey(messageId.toString())
+        .hasMessageId(messageId)
+        .hasState(FAILED)
+        .hasCreated(firstMessage.getValue().getCreated())
+        .hasLastUpdated(firstMessage.getValue().getLastUpdated(), clock.millis())
+        .hasAttempts(1)
+        .hasTask("foo", Schema.STRING)
+        .hasResult(null, Schema.STRING)
+        .hasFailureReason("Process was cancelled: null");
+
+    Message<TaskMetadata> thirdMessage = nextMessage(5);
+    assertMessage(thirdMessage)
+        .hasKey(messageId.toString())
+        .hasMessageId(messageId)
+        .hasState(PROCESSING)
+        .hasCreated(firstMessage.getValue().getCreated())
+        .hasLastUpdated(secondMessage.getValue().getLastUpdated(), clock.millis())
+        .hasAttempts(2)
+        .hasTask("foo", Schema.STRING)
+        .hasResult(null, Schema.STRING)
+        .hasFailureReason(null);
+
+    Message<TaskMetadata> fourthMessage = nextMessage(5);
+    assertMessage(fourthMessage)
+        .hasKey(messageId.toString())
+        .hasMessageId(messageId)
+        .hasState(COMPLETED)
+        .hasCreated(firstMessage.getValue().getCreated())
+        .hasLastUpdated(thirdMessage.getValue().getLastUpdated(), clock.millis())
+        .hasAttempts(2)
+        .hasTask("foo", Schema.STRING)
+        .hasResult("bar", Schema.STRING)
+        .hasFailureReason(null);
+
+    assertMessage(nextMessage(20)).hasKey(messageId.toString()).hasNullValue();
 
     assertThat(nextMessage(10)).isNull();
   }
