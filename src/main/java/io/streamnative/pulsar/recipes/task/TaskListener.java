@@ -123,15 +123,13 @@ public class TaskListener<T, R> implements MessageListener<T> {
     long millisSinceLastUpdate = clock.millis() - taskMetadata.getLastUpdated();
     if (millisSinceLastUpdate > keepAliveIntervalMillis * 2) {
       if (taskMetadata.getAttempts() < maxTaskAttempts) {
+        // We've missed two keep-alives so we'll assume this task is dead and try again
         processTask(taskConsumer, taskMessage, taskMetadata);
       } else {
         taskMetadataUpdater.update(
             taskMetadata.fail(clock.millis(), "All attempts to process task failed."));
         taskConsumer.acknowledge(taskMessage);
       }
-    } else {
-      // Premature keep-alive
-      taskConsumer.negativeAcknowledge(taskMessage);
     }
   }
 
