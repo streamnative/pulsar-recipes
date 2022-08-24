@@ -31,6 +31,7 @@ import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
@@ -50,7 +51,7 @@ class ProcessExecutorTest {
   @Test
   void simpleSuccess() throws Exception {
     ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, 100L);
+        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
 
     when(process.apply(TASK)).thenReturn(RESULT);
 
@@ -63,7 +64,7 @@ class ProcessExecutorTest {
   @Test
   void processorThrowsException() throws Exception {
     ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, 100L);
+        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
 
     when(process.apply(TASK)).thenThrow(new Exception("failed"));
 
@@ -78,7 +79,7 @@ class ProcessExecutorTest {
   @Test
   void processorHasDelay() throws Exception {
     ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, 75L);
+        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(75L));
 
     when(process.apply(TASK))
         .thenAnswer(
@@ -96,7 +97,7 @@ class ProcessExecutorTest {
   @Test
   void processorInterrupted() throws Exception {
     ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, 100L);
+        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
 
     when(process.apply(TASK))
         .thenAnswer(
@@ -113,12 +114,12 @@ class ProcessExecutorTest {
   }
 
   @Test
-  void processorTaskWithinDuration() throws Exception {
+  void processTaskWithinDuration() throws Exception {
     Optional<Duration> oneHour = Optional.of(Duration.ofHours(1L));
     when(clock.instant())
         .thenReturn(Instant.ofEpochMilli(0), Instant.ofEpochMilli(MINUTES.toMillis(5)));
     ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, 100L);
+        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(50L));
 
     when(process.apply(TASK))
         .thenAnswer(
@@ -128,19 +129,17 @@ class ProcessExecutorTest {
             });
 
     String result = processExecutor.execute(TASK, oneHour, keepAlive);
-
     assertThat(result).isEqualTo(RESULT);
-    verify(keepAlive, times(1)).update();
   }
 
   @Test
   @Timeout(value = 10, unit = SECONDS)
-  void processorTaskExceedsDuration() throws Exception {
+  void processTaskExceedsDuration() throws Exception {
     Optional<Duration> oneHour = Optional.of(Duration.ofHours(1L));
     when(clock.instant())
         .thenReturn(Instant.ofEpochMilli(0), Instant.ofEpochMilli(MINUTES.toMillis(65)));
     ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, 100L);
+        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
 
     when(process.apply(TASK))
         .thenAnswer(
@@ -152,7 +151,8 @@ class ProcessExecutorTest {
 
     assertThatExceptionOfType(ProcessException.class)
         .isThrownBy(() -> processExecutor.execute(TASK, oneHour, keepAlive))
-        .withMessage("Task exceeded maximum execution duration - terminated.");
+        .withMessage("Task exceeded maximum execution duration - terminated.")
+        .withCauseExactlyInstanceOf(CancellationException.class);
     verify(keepAlive, times(1)).update();
   }
 }
