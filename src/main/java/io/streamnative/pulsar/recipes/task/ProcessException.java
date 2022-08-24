@@ -20,7 +20,7 @@ public class ProcessException extends Exception {
     super(cause);
   }
 
-  public ProcessException(String message) {
-    super(message);
+  public ProcessException(String message, Throwable cause) {
+    super(message, cause);
   }
 }
