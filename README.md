@@ -68,7 +68,7 @@ Consumer<TaskMetadata> metadataConsumer = client.newConsumer(Schema.JSON(TaskMet
 
 MessageId messageId = taskProducer
     .newMessage()
-    .property(MAX_TASK_DURATION.key(), "P3H")
+    .property(MAX_TASK_DURATION.key(), MAX_TASK_DURATION.of("PT3H"))
     .value(new Task("Dave"))
     .send();
 

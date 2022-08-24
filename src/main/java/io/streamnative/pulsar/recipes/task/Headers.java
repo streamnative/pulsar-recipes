@@ -15,7 +15,9 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
+import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
 import java.util.Optional;
 import lombok.NonNull;
 import org.apache.pulsar.client.api.Message;
@@ -31,9 +33,18 @@ public enum Headers {
     String key() {
       return "MAX_TASK_DURATION";
     }
+
+    @Override
+    String of(String value) {
+      requireNonNull(value);
+      Duration.parse(value);
+      return value;
+    }
   };
 
   abstract String key();
+
+  abstract String of(String value);
 
   Optional<String> from(@NonNull Message<?> message) {
     return Optional.ofNullable(message.getProperty(key()));
