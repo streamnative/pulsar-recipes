@@ -15,7 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-import static io.streamnative.pulsar.recipes.task.Headers.MAX_TASK_DURATION;
+import static io.streamnative.pulsar.recipes.task.TaskProperties.MAX_TASK_DURATION;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -30,7 +30,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class HeadersTest {
+class TaskPropertiesTest {
 
   @Mock Message<String> message;
 

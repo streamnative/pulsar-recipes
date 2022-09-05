@@ -15,8 +15,8 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-import static io.streamnative.pulsar.recipes.task.Headers.MAX_TASK_DURATION;
 import static io.streamnative.pulsar.recipes.task.MessageAssert.assertMessage;
+import static io.streamnative.pulsar.recipes.task.TaskProperties.MAX_TASK_DURATION;
 import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
 import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
 import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;

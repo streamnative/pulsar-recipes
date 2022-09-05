@@ -164,7 +164,7 @@ public class TaskListener<T, R> implements MessageListener<T> {
   }
 
   private Optional<Duration> getMaxTaskDuration(Message<T> message) {
-    Optional<String> header = Headers.MAX_TASK_DURATION.from(message);
+    Optional<String> header = TaskProperties.MAX_TASK_DURATION.from(message);
     try {
       return header.map(Duration::parse);
     } catch (DateTimeException e) {

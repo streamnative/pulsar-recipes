@@ -22,12 +22,12 @@ import java.util.Optional;
 import lombok.NonNull;
 import org.apache.pulsar.client.api.Message;
 
-/** Message headers understood my the system. */
-public enum Headers {
+/** Message properties understood my the system. */
+public enum TaskProperties {
   /**
    * Sets the maximum length of time a task may execute for - declared as an <a
    * href="https://en.wikipedia.org/wiki/ISO_8601#Durations">ISO 8601 Duration</a> such as {@code
-   * P3D5H}.
+   * P3DT5H}.
    */
   MAX_TASK_DURATION() {
     String key() {
