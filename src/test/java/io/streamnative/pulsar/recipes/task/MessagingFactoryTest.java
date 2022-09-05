@@ -110,6 +110,8 @@ class MessagingFactoryTest {
     when(builder.topic(configuration.getTaskTopic())).thenReturn(builder);
     when(builder.subscriptionName(configuration.getSubscription())).thenReturn(builder);
     when(builder.subscriptionType(Shared)).thenReturn(builder);
+    when(builder.ackTimeout(configuration.getWorkerTaskTimeout().toMillis(), MILLISECONDS))
+        .thenReturn(builder);
     when(builder.negativeAckRedeliveryDelay(
             configuration.getTaskRedeliveryDelay().toMillis(), MILLISECONDS))
         .thenReturn(builder);
