@@ -22,7 +22,10 @@ import java.util.Optional;
 import lombok.NonNull;
 import org.apache.pulsar.client.api.Message;
 
-/** Message properties understood my the system. */
+/**
+ * Message properties understood my the system that may direct the behaviour of the system's
+ * processing of the task.
+ */
 public enum TaskProperties {
   /**
    * Sets the maximum length of time a task may execute for - declared as an <a

@@ -15,6 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
+/** The last known state of the processing of a task. */
 public enum TaskState {
   NEW,
   PROCESSING,

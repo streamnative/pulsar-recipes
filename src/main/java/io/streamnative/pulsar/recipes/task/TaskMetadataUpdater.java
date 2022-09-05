@@ -21,6 +21,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClientException;
 
+/**
+ * Persists updates to a {@link io.streamnative.pulsar.recipes.task.TaskMetadata task's metadata}.
+ */
 @Slf4j
 @RequiredArgsConstructor
 class TaskMetadataUpdater {

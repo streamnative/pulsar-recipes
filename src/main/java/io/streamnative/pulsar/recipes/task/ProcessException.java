@@ -15,6 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
+/** Describes an error that occurred when applying the {@link Process} to a task. */
 public class ProcessException extends Exception {
   public ProcessException(String message, Throwable cause) {
     super(message, cause);

@@ -26,6 +26,11 @@ import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.TableView;
 
+/**
+ * Constructs messaging primitives used by the work scheduler system.
+ *
+ * @param <T> Type describing the task to be processed.
+ */
 @RequiredArgsConstructor
 class MessagingFactory<T> {
   private final PulsarClient client;

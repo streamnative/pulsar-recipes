@@ -31,9 +31,9 @@ import org.apache.pulsar.client.api.Schema;
 /**
  * Handles a task's lifecycle. Tasks are ACKed when the processing on them has completed, or when
  * we've exceeded the max number of task retires, each ending in failure. Tasks are NACKed when
- * there is an unexpected error, or when processing is taking place and a periodic state update is
- * premature. There are no ACK/NACK timeouts and so you should expect task redeliveries only in the
- * event of consumer failure, or one of the explicit NACK conditions described earlier.
+ * there is an unexpected error. You should expect task redeliveries only in the event of consumer
+ * failure, one of the explicit NACK conditions described earlier, or if the {@link
+ * TaskWorkerConfiguration#getWorkerTaskTimeout() workerTaskTimeout} has been exceeded.
  *
  * @param <T> Type describing the task to be processed.
  * @param <R> Return type yielded from the processing of the task.

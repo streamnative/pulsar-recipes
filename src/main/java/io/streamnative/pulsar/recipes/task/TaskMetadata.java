@@ -23,6 +23,10 @@ import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;
 import lombok.ToString;
 import lombok.Value;
 
+/**
+ * Describes the last known state of a task undergoing {@link
+ * io.streamnative.pulsar.recipes.task.Process processing}.
+ */
 @Value
 @ToString(exclude = {"task", "result"}) // task and result may be sensitive
 public class TaskMetadata {

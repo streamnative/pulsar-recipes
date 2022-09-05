@@ -27,6 +27,12 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.apache.pulsar.client.api.Schema;
 
+/**
+ * Configures the worker component of the scheduler system.
+ *
+ * @param <T> Type describing the task to be processed.
+ * @param <R> Return type yielded from the processing of the task.
+ */
 @Getter
 @AllArgsConstructor(access = PRIVATE)
 public class TaskWorkerConfiguration<T, R> {

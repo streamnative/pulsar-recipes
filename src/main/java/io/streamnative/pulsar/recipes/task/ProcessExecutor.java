@@ -30,8 +30,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Applies a process to a task and observes the process until it has either completed, or exceeded
- * it's allowed processing duration.
+ * Applies a {@link Process} to a task and observes the process until it has either completed, or
+ * (optionally) exceeded it's allowed processing duration — as defined by the message header {@link
+ * TaskProperties#MAX_TASK_DURATION}.
  *
  * @param <T> Type describing the task to be processed.
  * @param <R> Return type yielded from the processing of the task.
