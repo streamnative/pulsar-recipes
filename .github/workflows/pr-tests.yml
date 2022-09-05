@@ -3,10 +3,10 @@ name: pulsar-recipe tests
 on:
   pull_request:
     branches:
-      - *
+      - '**'
   push:
     branches:
-      - *
+      - '**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
