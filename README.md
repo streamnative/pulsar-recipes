@@ -68,16 +68,19 @@ PulsarClient client = PulsarClient.builder()
     .serviceUrl("pulsar://localhost:6650")
     .build();
 
+// Producer to submit tasks
 Producer<Task> taskProducer = client.newProducer(Schema.JSON(Task.class))
     .topic("tasks")
     .enableBatching(false)
     .create();
 
+// Consumer to fetch task processing results
 Consumer<TaskMetadata> metadataConsumer = client.newConsumer(Schema.JSON(TaskMetadata.class))
     .topic("tasks-metadata")
     .subscriptionName("results-subscription")
     .subscribe();
 
+// Create a new task and submit it
 MessageId messageId = taskProducer
     .newMessage()
     // Cancel task tries if they don't complete in 1 hour (default is ∞)    
@@ -88,6 +91,7 @@ MessageId messageId = taskProducer
     .value(new Task("Dave"))
     .send();
 
+// Listen for results
 Schema<Result> schema = Schema.JSON(Result.class);
 
 while (true) {
