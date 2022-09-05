@@ -37,6 +37,7 @@ public class TaskWorkerConfiguration<T, R> {
   private final String subscription;
   private final int maxTaskAttempts;
   private final Duration keepAliveInterval;
+  private final Duration workerTaskTimeout;
   private final Duration taskRedeliveryDelay;
   private final Duration retention;
   private final Duration shutdownTimeout;
@@ -54,6 +55,7 @@ public class TaskWorkerConfiguration<T, R> {
     private String subscription;
     private int maxTaskAttempts = 3;
     private Duration keepAliveInterval = Duration.ofMinutes(5);
+    private Duration workerTaskTimeout = ZERO;
     private Duration taskRedeliveryDelay = Duration.ofMinutes(5);
     private Duration retention = Duration.ofDays(1);
     private Duration shutdownTimeout = Duration.ofSeconds(10);
@@ -107,8 +109,9 @@ public class TaskWorkerConfiguration<T, R> {
     }
 
     /**
-     * The delay at which tasks should be redelivered after an error in processing or after keep
-     * alive checks.
+     * The delay at which tasks should be redelivered after an unexpected error in the handling on
+     * the task or the task metadata. These failures are exceptional and unlikely to be related to
+     * the processing of the task.
      *
      * @param taskRedeliveryDelay The task redelivery delay
      * @return this TaskWorkerBuilder instance
@@ -131,6 +134,23 @@ public class TaskWorkerConfiguration<T, R> {
       checkArgument(
           keepAliveInterval.compareTo(ZERO) > 0, "keepAliveInterval must be greater than zero");
       this.keepAliveInterval = keepAliveInterval;
+      return this;
+    }
+
+    /**
+     * The maximum time before a task is potentially released to other workers. If the original
+     * consumer is still working on the task this may result in duplicate work. Primarily this is to
+     * defend against live but stuck workers. If avoiding duplicate work is a priority, disable this
+     * feature with a value of {@link Duration#ZERO} (the default). If your priority is to complete
+     * all work, set this to a value that exceeds your longest expected job run (including retries).
+     *
+     * @param workerTaskTimeout Max time allotted to workers to complete a task.
+     * @return this TaskWorkerBuilder instance
+     */
+    public Builder<T, R> workerTaskTimeout(@NonNull Duration workerTaskTimeout) {
+      checkArgument(
+          workerTaskTimeout.compareTo(ZERO) >= 0, "workerTaskTimeout must be zero or greater");
+      this.workerTaskTimeout = workerTaskTimeout;
       return this;
     }
 
@@ -181,6 +201,7 @@ public class TaskWorkerConfiguration<T, R> {
           subscription,
           maxTaskAttempts,
           keepAliveInterval,
+          workerTaskTimeout,
           taskRedeliveryDelay,
           retention,
           shutdownTimeout);

@@ -61,12 +61,12 @@ class MessagingFactory<T> {
   }
 
   Consumer<T> taskConsumer(TaskListener<T, ?> taskListener) throws PulsarClientException {
-    // ACK Timeout intentionally 0 (i.e. ACK TOs disabled)
     return client
         .newConsumer(configuration.getTaskSchema())
         .topic(configuration.getTaskTopic())
         .subscriptionName(configuration.getSubscription())
         .subscriptionType(Shared)
+        .ackTimeout(configuration.getWorkerTaskTimeout().toMillis(), MILLISECONDS)
         .negativeAckRedeliveryDelay(configuration.getTaskRedeliveryDelay().toMillis(), MILLISECONDS)
         .receiverQueueSize(0)
         .messageListener(taskListener)
