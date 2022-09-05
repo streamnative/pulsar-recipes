@@ -18,13 +18,19 @@
 
 skinparam defaultTextAlignment center
 
-title Overview
+title Task Listener
 
 start
 :receive\ntask;
 switch (get\nstate)
 case (NEW)
     :process\ntask;
+    if (success ?) then (yes)
+        #DDDDFF:update state\nCOMPLETED;
+        #DDFFDD:acknowledge\ntask;
+    else (no)
+        #FFDDDD:update state\nFAILED;
+    endif
 case (PROCESSING)
     if (stale ?) then (yes)
 '        :process\ntask;
@@ -36,14 +42,16 @@ case (PROCESSING)
         endif
     else (no)
     endif
+case (COMPLETED)
+    #DDFFDD:acknowledge\ntask;
 case (FAILED)
     if (max\nattempts\nreached ?) then (yes)
         #DDFFDD:acknowledge\ntask;
     else (no)
         :process\ntask;
     endif
-case (COMPLETED)
-    #DDFFDD:acknowledge\ntask;
+case (<undefined>)
+    #FFDDDD:negative\nacknowledge\ntask;
 endswitch
 end
 

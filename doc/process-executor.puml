@@ -18,21 +18,25 @@
 
 skinparam defaultTextAlignment center
 
-title Process Task
+title Process Executor
 
 start
 #DDDDFF:update state\nPROCESSING;
 :execute\ntask\nasync;
-while (execution\ncomplete ?) is (no)
-    :wait;
-    #DDDDFF:update state\nPROCESSING;
-endwhile (yes)
+while (execution in\nprogress ?) is (yes)
+    :wait
+    keep-alive
+    timeout;
+    if (task within\ntime budget ?) then (yes)
+        #DDDDFF:Keep-alive:\nUpdate state\nPROCESSING;
+    else (no)
+        #FFDDDD:Cancel\nasync\ntask;
+    endif
+endwhile (no)
 if (success ?) then (yes)
-    #DDDDFF:update state\nCOMPLETED;
-    #DDFFDD:acknowledge\ntask;
+    #DDDDFF:Return\nresult;
 else (no)
-    #DDDDFF:update state\nFAILED;
-    #FFDDDD:negative\nacknowledge\ntask;
+    #FFDDDD:Throw\nerror;
 endif
 end
 
