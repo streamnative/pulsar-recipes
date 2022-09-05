@@ -15,8 +15,8 @@
     limitations under the License.
 
 -->
-<!--TODO fix serializable issues with ExpirationListener & TaskListener-->
-<!--TODO fix exposing mutable state in Configuration & ProcessingState-->
+<!--TODO fix serializable issues with TaskMetadataEvictionListener & TaskListener -->
+<!--TODO fix exposing mutable state in TaskWorkerConfiguration & TaskMetadata -->
 <FindBugsFilter>
   <Match>
     <Class name="io.streamnative.pulsar.recipes.process.TaskWorkerConfiguration"/>
