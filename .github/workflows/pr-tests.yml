@@ -1,0 +1,43 @@
+name: pulsar-recipe tests
+
+on:
+  pull_request:
+    branches:
+      - *
+  push:
+    branches:
+      - *
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up JDK 8
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+
+      - name: Verify
+        run: mvn -ntp -B verify
+
+      - name: package surefire artifacts
+        if: failure()
+        run: |
+          rm -rf artifacts
+          mkdir artifacts
+          find . -type d -name "*surefire*" -exec cp --parents -R {} artifacts/ \;
+          zip -r artifacts.zip artifacts
+      - uses: actions/upload-artifact@v3
+        name: upload surefire-artifacts
+        if: failure()
+        with:
+          name: surefire-artifacts
+          path: artifacts.zip
