@@ -81,7 +81,10 @@ Consumer<TaskMetadata> metadataConsumer = client.newConsumer(Schema.JSON(TaskMet
 MessageId messageId = taskProducer
     .newMessage()
     // Cancel task tries if they don't complete in 1 hour (default is ∞)    
-    .property(MAX_TASK_DURATION.key(), MAX_TASK_DURATION.of("PT1H"))
+    .property(
+        TaskProperties.MAX_TASK_DURATION.key(),
+        TaskProperties.MAX_TASK_DURATION.of("PT1H")
+    )
     .value(new Task("Dave"))
     .send();
 
