@@ -93,7 +93,6 @@ MessageId messageId = taskProducer
 
 // Listen for results
 Schema<Result> schema = Schema.JSON(Result.class);
-
 while (true) {
     Message<TaskMetadata> message = metadataConsumer.receive();
         TaskMetadata taskMetadata = message.getValue();
