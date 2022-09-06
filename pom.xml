@@ -118,6 +118,7 @@
             <googleJavaFormat/>
             <importOrder/>
             <removeUnusedImports/>
+            <endWithNewline/>
           </java>
         </configuration>
         <executions>
