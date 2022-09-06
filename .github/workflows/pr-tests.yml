@@ -27,8 +27,11 @@ jobs:
           distribution: temurin
           java-version: 8
 
-      - name: Verify
+      - name: Build and Verify
         run: mvn -ntp -B verify
+
+      - name: Create JavaDocs
+        run: mvn -ntp -B javadoc:jar
 
       - name: package surefire artifacts
         if: failure()
