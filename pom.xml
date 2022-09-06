@@ -203,12 +203,10 @@
         <version>${maven.compiler.plugin.version}</version>
         <configuration>
           <compilerArgs>
-            <!--            TODO check compiler args-->
-            <!--            <compilerArg>-Xlint:deprecation</compilerArg>-->
-            <!--            <compilerArg>-Xlint:unchecked</compilerArg>-->
-            <!--            &lt;!&ndash; https://issues.apache.org/jira/browse/MCOMPILER-205 &ndash;&gt;-->
-            <!--            <compilerArg>-Xpkginfo:always</compilerArg>-->
             <compilerArg>-Xlint</compilerArg>
+            <compilerArg>-Xlint:deprecation</compilerArg>
+            <compilerArg>-Xlint:unchecked</compilerArg>
+            <compilerArg>-Xpkginfo:always</compilerArg>
           </compilerArgs>
         </configuration>
       </plugin>
