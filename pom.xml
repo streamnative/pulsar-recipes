@@ -107,8 +107,27 @@
             <googleJavaFormat/>
             <importOrder/>
             <removeUnusedImports/>
-            <endWithNewline/>
           </java>
+          <markdown>
+            <includes>
+              <include>**/*.md</include>
+            </includes>
+            <flexmark/>
+          </markdown>
+          <formats>
+            <format>
+              <includes>
+                <include>etc/**/*.xml</include>
+                <include>.github/workflows/**/*.yml</include>
+              </includes>
+              <trimTrailingWhitespace/>
+              <endWithNewline/>
+              <indent>
+                <spaces>true</spaces>
+                <spacesPerTab>4</spacesPerTab>
+              </indent>
+            </format>
+          </formats>
         </configuration>
         <executions>
           <execution>
