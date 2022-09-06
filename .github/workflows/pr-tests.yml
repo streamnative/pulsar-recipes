@@ -30,7 +30,7 @@ jobs:
       - name: Build and Verify
         run: mvn -ntp -B verify
 
-      - name: Create JavaDocs
+      - name: Validate Javadoc creation
         run: mvn -ntp -B javadoc:jar
 
       - name: package surefire artifacts
