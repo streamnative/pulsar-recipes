@@ -26,7 +26,7 @@ import org.apache.pulsar.client.api.TableView;
  * A global, eventually consistent {@link org.apache.pulsar.client.api.TableView table view} of
  * {@link TaskMetadata metadata} pertaining to all tasks being processed by the system.
  *
- * @param <T> Type describing the task to be processed.s
+ * @param <T> Type describing the task to be processed.
  */
 @RequiredArgsConstructor
 class TaskMetadataView<T> {
