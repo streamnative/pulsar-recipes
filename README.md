@@ -1,6 +1,6 @@
 # Pulsar Recipes
 
-[//]: # (TODO README badges https://shields.io/)
+[![Build](https://github.com/streamnative/pulsar-recipes/actions/workflows/pr-build-and-test.yml/badge.svg)](https://github.com/streamnative/pulsar-recipes/actions/workflows/pr-build-and-test.yml)
 
 A cookbook of varied use-cases built atop of Apache Pulsar. The purpose of this repository is to demonstrate how Apache
 Pulsar primitives can be combined to produce useful and novel behaviours while benefiting from Pulsar's inherent
