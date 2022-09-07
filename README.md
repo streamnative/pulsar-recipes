@@ -41,10 +41,11 @@ exceeded a time-based processing budget.
   * When the task is in a terminal state, the metadata is scheduled for reconsumption and subsequent eviction.
 
 #### Limitations
-
-In the event of a non-progressing worker, the tasks allocated to that worker will not be released to another worker
-and the task will remain stuck. This can be alleviated by setting `TaskConfiguration.workerTaskTimeout` to a value
-greater than the longest expected running time of any task (including all retries).
+* You task producer must not use batching to ensure the individual allocation of tasks to workers. To do this use
+  `enableBatching(false)`.
+* In the event of a non-progressing worker, the tasks allocated to that worker will not be released to another worker
+  and the task will remain stuck. This can be alleviated by setting `TaskConfiguration.workerTaskTimeout` to a value
+  greater than the longest expected running time of any task (including all retries).
 
 #### Example
 
@@ -74,6 +75,7 @@ PulsarClient client = PulsarClient.builder()
 // Producer to submit tasks
 Producer<Task> taskProducer = client.newProducer(Schema.JSON(Task.class))
     .topic("tasks")
+    // Essential for individual allocation of tasks (see limitation noted above).    
     .enableBatching(false)
     .create();
 
