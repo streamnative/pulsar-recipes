@@ -90,6 +90,7 @@
   <build>
     <plugins>
       <plugin>
+        <!-- Check formats of various source files -->
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
         <version>${spotless.plugin.version}</version>
@@ -139,6 +140,7 @@
         </executions>
       </plugin>
       <plugin>
+        <!-- Check for typical bugs -->
         <groupId>com.github.spotbugs</groupId>
         <artifactId>spotbugs-maven-plugin</artifactId>
         <version>${spotbugs.plugin.version}</version>
@@ -154,6 +156,7 @@
         </executions>
       </plugin>
       <plugin>
+        <!-- Check that source files have appropriate license headers -->
         <groupId>com.mycila</groupId>
         <artifactId>license-maven-plugin</artifactId>
         <version>${license.plugin.version}</version>
@@ -181,6 +184,7 @@
         </executions>
       </plugin>
       <plugin>
+        <!-- Deeper code style check -->
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>
         <version>${checkstyle.plugin.version}</version>
@@ -257,6 +261,7 @@
         <version>${maven.surefire.plugin.version}</version>
       </plugin>
       <plugin>
+        <!-- Check test coverage -->
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>${jacoco.plugin.version}</version>

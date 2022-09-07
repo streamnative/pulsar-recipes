@@ -28,21 +28,21 @@ jobs:
           java-version: 8
 
       - name: Build and Verify
-        run: mvn -ntp -B verify
+        run: ./mvnw --no-transfer-progress --batch-mode verify
 
       - name: Validate Javadoc creation
-        run: mvn -ntp -B javadoc:jar
+        run: ./mvnw --no-transfer-progress --batch-mode javadoc:jar
 
-      - name: package surefire artifacts
+      - name: package surefire test results
         if: failure()
         run: |
-          rm -rf artifacts
-          mkdir artifacts
-          find . -type d -name "*surefire*" -exec cp --parents -R {} artifacts/ \;
-          zip -r artifacts.zip artifacts
+          rm -rf test-results
+          mkdir test-results
+          find . -type d -name "*surefire*" -exec cp --parents -R {} test-results/ \;
+          zip -r test-results.zip test-results
       - uses: actions/upload-artifact@v3
-        name: upload surefire-artifacts
+        name: upload test-results
         if: failure()
         with:
-          name: surefire-artifacts
-          path: artifacts.zip
+          name: test-results
+          path: test-results.zip

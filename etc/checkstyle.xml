@@ -22,12 +22,11 @@
 
 <!--
 
-  Checkstyle configuration that checks the sun coding conventions from:
+  Checkstyle configuration that firstly conforms to the Google Java Code style
+  and then further incorporates recommendations and conventions from:
 
     - the Java Language Specification at
       https://docs.oracle.com/javase/specs/jls/se11/html/index.html
-
-    - the Sun Code Conventions at https://www.oracle.com/java/technologies/javase/codeconventions-contents.html
 
     - the Javadoc guidelines at
       https://www.oracle.com/technical-resources/articles/java/javadoc-tool.html
