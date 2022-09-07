@@ -28,7 +28,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -42,8 +41,8 @@ class TaskMetadataUpdaterTest {
   @ParameterizedTest
   @MethodSource("methods")
   void test(Method method, boolean nullValue) throws PulsarClientException {
-    TaskMetadata taskMetadata = processingState(1);
-    TaskMetadata value = nullValue ? null : taskMetadata;
+    var taskMetadata = processingState(1);
+    var value = nullValue ? null : taskMetadata;
 
     when(producer.newMessage()).thenReturn(typedMessageBuilder);
     when(typedMessageBuilder.key(MESSAGE_ID)).thenReturn(typedMessageBuilder);
@@ -51,7 +50,7 @@ class TaskMetadataUpdaterTest {
 
     method.invoke(metadataUpdater, taskMetadata);
 
-    InOrder inOrder = inOrder(typedMessageBuilder);
+    var inOrder = inOrder(typedMessageBuilder);
     inOrder.verify(typedMessageBuilder).key(MESSAGE_ID);
     inOrder.verify(typedMessageBuilder).value(value);
     inOrder.verify(typedMessageBuilder).send();

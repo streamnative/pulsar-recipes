@@ -62,7 +62,7 @@ class MessagingFactoryTest {
     when(builder.topic(configuration.getMetadataTopic())).thenReturn(builder);
     when(builder.create()).thenReturn(tableView);
 
-    TableView<TaskMetadata> result = messagingFactory.taskMetadataTableView();
+    var result = messagingFactory.taskMetadataTableView();
 
     assertThat(result).isSameAs(tableView);
   }
@@ -76,7 +76,7 @@ class MessagingFactoryTest {
     when(builder.enableBatching(false)).thenReturn(builder);
     when(builder.create()).thenReturn(producer);
 
-    Producer<TaskMetadata> result = messagingFactory.taskMetadataProducer();
+    var result = messagingFactory.taskMetadataProducer();
 
     assertThat(result).isSameAs(producer);
   }
@@ -95,7 +95,7 @@ class MessagingFactoryTest {
     when(builder.messageListener(listener)).thenReturn(builder);
     when(builder.subscribe()).thenReturn(consumer);
 
-    Consumer<TaskMetadata> result = messagingFactory.metadataEvictionConsumer(listener);
+    var result = messagingFactory.metadataEvictionConsumer(listener);
 
     assertThat(result).isSameAs(consumer);
   }
@@ -119,7 +119,7 @@ class MessagingFactoryTest {
     when(builder.messageListener(listener)).thenReturn(builder);
     when(builder.subscribe()).thenReturn(consumer);
 
-    Consumer<String> result = messagingFactory.taskConsumer(listener);
+    var result = messagingFactory.taskConsumer(listener);
 
     assertThat(result).isSameAs(consumer);
   }

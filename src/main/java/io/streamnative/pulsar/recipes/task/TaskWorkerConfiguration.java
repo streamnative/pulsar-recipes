@@ -197,7 +197,7 @@ public class TaskWorkerConfiguration<T, R> {
       requireNonNull(taskTopic);
       requireNonNull(subscription);
 
-      String stateTopic = this.stateTopic == null ? taskTopic + "-state" : this.stateTopic;
+      var stateTopic = this.stateTopic == null ? taskTopic + "-state" : this.stateTopic;
 
       return new TaskWorkerConfiguration<>(
           taskSchema,

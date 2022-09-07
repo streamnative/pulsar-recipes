@@ -63,7 +63,7 @@ class TaskMetadataViewTest {
 
   @Test
   void previouslySeenMessageId() {
-    TaskMetadata taskMetadata =
+    var taskMetadata =
         new TaskMetadata(MESSAGE_ID, PROCESSING, 0L, 10L, 1, ENCODED_TASK, null, null);
     when(tableView.get(MESSAGE_ID)).thenReturn(taskMetadata);
 

@@ -16,23 +16,19 @@
 package io.streamnative.pulsar.recipes.task;
 
 import static java.time.Clock.systemUTC;
+import static java.util.Collections.unmodifiableList;
 import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 
-import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledExecutorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.pulsar.client.api.Consumer;
-import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
 import org.apache.pulsar.client.api.Schema;
-import org.apache.pulsar.client.api.TableView;
 
 /** Responsible for the processing of tasks and management of resulting task metadata. */
 @Slf4j
@@ -45,26 +41,26 @@ public class TaskWorker implements AutoCloseable {
   public static <T, R> TaskWorker create(
       PulsarClient client, Process<T, R> process, TaskWorkerConfiguration<T, R> configuration)
       throws PulsarClientException {
-    ScheduledExecutorService executor = newSingleThreadScheduledExecutor();
-    Clock clock = systemUTC();
+    var executor = newSingleThreadScheduledExecutor();
+    var clock = systemUTC();
 
-    Schema<TaskMetadata> stateSchema = Schema.JSON(TaskMetadata.class);
+    var stateSchema = Schema.JSON(TaskMetadata.class);
 
-    MessagingFactory<T> factory = new MessagingFactory<>(client, stateSchema, configuration);
-    List<AutoCloseable> closeables = new ArrayList<>();
+    var factory = new MessagingFactory<>(client, stateSchema, configuration);
+    var closeables = new ArrayList<AutoCloseable>();
 
-    Producer<TaskMetadata> metadataProducer = factory.taskMetadataProducer();
+    var metadataProducer = factory.taskMetadataProducer();
     closeables.add(metadataProducer);
-    TaskMetadataUpdater stateUpdater = new TaskMetadataUpdater(metadataProducer);
+    var stateUpdater = new TaskMetadataUpdater(metadataProducer);
 
-    TableView<TaskMetadata> metadataTableView = factory.taskMetadataTableView();
+    var metadataTableView = factory.taskMetadataTableView();
     closeables.add(metadataTableView);
-    TaskMetadataView<T> taskMetadataView =
+    var taskMetadataView =
         new TaskMetadataView<>(metadataTableView, clock, configuration.getTaskSchema());
 
-    ProcessExecutor<T, R> processExecutor =
+    var processExecutor =
         new ProcessExecutor<>(executor, process, clock, configuration.getKeepAliveInterval());
-    TaskListener<T, R> taskListener =
+    var taskListener =
         new TaskListener<>(
             taskMetadataView,
             stateUpdater,
@@ -73,19 +69,20 @@ public class TaskWorker implements AutoCloseable {
             configuration.getResultSchema(),
             configuration.getMaxTaskAttempts(),
             configuration.getKeepAliveInterval().toMillis());
-    Consumer<T> taskConsumer = factory.taskConsumer(taskListener);
+    var taskConsumer = factory.taskConsumer(taskListener);
     closeables.add(taskConsumer);
 
-    TaskMetadataEvictionListener evictionListener =
+    var evictionListener =
         new TaskMetadataEvictionListener(
             stateUpdater,
             clock,
             configuration.getMaxTaskAttempts(),
             configuration.getRetention().toMillis());
-    Consumer<TaskMetadata> metadataConsumer = factory.metadataEvictionConsumer(evictionListener);
+    var metadataConsumer = factory.metadataEvictionConsumer(evictionListener);
     closeables.add(metadataConsumer);
 
-    return new TaskWorker(executor, closeables, configuration.getShutdownTimeout().toMillis());
+    return new TaskWorker(
+        executor, unmodifiableList(closeables), configuration.getShutdownTimeout().toMillis());
   }
 
   @Override

@@ -44,7 +44,7 @@ class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
   public void received(
       Consumer<TaskMetadata> metadataConsumer, Message<TaskMetadata> metadataMessage) {
     try {
-      TaskMetadata metadata = metadataMessage.getValue();
+      var metadata = metadataMessage.getValue();
       log.debug("Received: {}", metadata);
       if (metadata == null) { // tombstone
         metadataConsumer.acknowledge(metadataMessage);
@@ -75,8 +75,8 @@ class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
   private void checkTerminalTaskMetadata(
       Consumer<TaskMetadata> metadataConsumer, Message<TaskMetadata> metadataMessage)
       throws PulsarClientException {
-    TaskMetadata metadata = metadataMessage.getValue();
-    long intervalUntilMetadataEviction = intervalUntilMetadataEviction(metadata);
+    var metadata = metadataMessage.getValue();
+    var intervalUntilMetadataEviction = intervalUntilMetadataEviction(metadata);
     log.trace("Task metadata should be evicted in {} milliseconds", intervalUntilMetadataEviction);
     if (intervalUntilMetadataEviction > 0) {
       log.debug(
@@ -92,7 +92,7 @@ class TaskMetadataEvictionListener implements MessageListener<TaskMetadata> {
   }
 
   private long intervalUntilMetadataEviction(TaskMetadata metadata) {
-    long evictionTimestamp = metadata.getLastUpdated() + terminalStateRetentionMillis;
+    var evictionTimestamp = metadata.getLastUpdated() + terminalStateRetentionMillis;
     return max(0L, evictionTimestamp - clock.millis());
   }
 }

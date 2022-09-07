@@ -44,7 +44,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -82,18 +81,18 @@ class TaskListenerTest {
     when(metadataView.get(message)).thenReturn(newState());
     when(message.getValue()).thenReturn(TASK);
     when(clock.millis()).thenReturn(1L, 2L, 3L);
-    ArgumentCaptor<KeepAlive> keepAliveCaptor = ArgumentCaptor.forClass(KeepAlive.class);
+    var keepAliveCaptor = ArgumentCaptor.forClass(KeepAlive.class);
     when(processExecutor.execute(eq(TASK), eq(NoMaxDuration), keepAliveCaptor.capture()))
         .thenReturn(RESULT);
 
     taskListener.received(consumer, message);
 
-    InOrder inOrder = inOrder(metadataUpdater, consumer);
+    var inOrder = inOrder(metadataUpdater, consumer);
     inOrder.verify(metadataUpdater).update(taskMetadata.keepAlive(1L));
     inOrder.verify(metadataUpdater).update(taskMetadata.complete(2L, ENCODED_RESULT));
     inOrder.verify(consumer).acknowledge(message);
 
-    KeepAlive keepAlive = keepAliveCaptor.getValue();
+    var keepAlive = keepAliveCaptor.getValue();
     keepAlive.update();
     verify(metadataUpdater).update(taskMetadata.keepAlive(3L));
   }
@@ -108,7 +107,7 @@ class TaskListenerTest {
 
     taskListener.received(consumer, message);
 
-    InOrder inOrder = inOrder(metadataUpdater, consumer);
+    var inOrder = inOrder(metadataUpdater, consumer);
     inOrder.verify(metadataUpdater).update(taskMetadata.keepAlive(1L));
     inOrder
         .verify(metadataUpdater)
@@ -125,7 +124,7 @@ class TaskListenerTest {
 
     taskListener.received(consumer, message);
 
-    InOrder inOrder = inOrder(metadataUpdater, consumer);
+    var inOrder = inOrder(metadataUpdater, consumer);
     inOrder.verify(metadataUpdater).update(processingState(2).keepAlive(22L));
     inOrder.verify(metadataUpdater).update(processingState(2).complete(23L, ENCODED_RESULT));
     inOrder.verify(consumer).acknowledge(message);
@@ -138,7 +137,7 @@ class TaskListenerTest {
 
     taskListener.received(consumer, message);
 
-    InOrder inOrder = inOrder(metadataUpdater, consumer);
+    var inOrder = inOrder(metadataUpdater, consumer);
     inOrder
         .verify(metadataUpdater)
         .update(processingState(2).fail(22L, "All attempts to process task failed."));
@@ -187,7 +186,7 @@ class TaskListenerTest {
 
     taskListener.received(consumer, message);
 
-    InOrder inOrder = inOrder(metadataUpdater, consumer);
+    var inOrder = inOrder(metadataUpdater, consumer);
     inOrder.verify(metadataUpdater).update(processingState(2).keepAlive(1L));
     inOrder.verify(metadataUpdater).update(processingState(2).complete(2L, ENCODED_RESULT));
     inOrder.verify(consumer).acknowledge(message);
@@ -201,7 +200,7 @@ class TaskListenerTest {
 
     taskListener.received(consumer, message);
 
-    InOrder inOrder = inOrder(metadataUpdater, consumer);
+    var inOrder = inOrder(metadataUpdater, consumer);
     inOrder
         .verify(metadataUpdater)
         .update(processingState(2).fail(1L, "Unexpected state: UNKNOWN"));

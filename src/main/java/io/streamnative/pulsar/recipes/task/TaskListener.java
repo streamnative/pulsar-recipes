@@ -56,7 +56,7 @@ public class TaskListener<T, R> implements MessageListener<T> {
   @Override
   public void received(Consumer<T> taskConsumer, Message<T> taskMessage) {
     log.debug("Received: {}", taskMessage.getMessageId());
-    TaskMetadata metadata = taskMetadataView.get(taskMessage);
+    var metadata = taskMetadataView.get(taskMessage);
     try {
       switch (metadata.getState()) {
         case NEW:
@@ -93,19 +93,19 @@ public class TaskListener<T, R> implements MessageListener<T> {
   private void processTask(
       Consumer<T> taskConsumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
-    TaskMetadata updatedMetadata = taskMetadata.process(clock.millis());
+    var updatedMetadata = taskMetadata.process(clock.millis());
     taskMetadataUpdater.update(updatedMetadata);
-    TaskMetadata keepAliveState = updatedMetadata;
+    var keepAliveState = updatedMetadata;
     try {
       log.debug("Task processing for message {}", taskMessage.getMessageId());
 
-      R result =
+      var result =
           processExecutor.execute(
               taskMessage.getValue(),
               getMaxTaskDuration(taskMessage),
               () -> taskMetadataUpdater.update(keepAliveState.keepAlive(clock.millis())));
       log.debug("Task processed for message {}", taskMessage.getMessageId());
-      byte[] encodedResult = resultSchema.encode(result);
+      var encodedResult = resultSchema.encode(result);
       updatedMetadata = updatedMetadata.complete(clock.millis(), encodedResult);
       taskMetadataUpdater.update(updatedMetadata);
       taskConsumer.acknowledge(taskMessage);
@@ -124,7 +124,7 @@ public class TaskListener<T, R> implements MessageListener<T> {
   private void handleProcessing(
       Consumer<T> taskConsumer, Message<T> taskMessage, TaskMetadata taskMetadata)
       throws PulsarClientException {
-    long millisSinceLastUpdate = clock.millis() - taskMetadata.getLastUpdated();
+    var millisSinceLastUpdate = clock.millis() - taskMetadata.getLastUpdated();
     if (millisSinceLastUpdate > keepAliveIntervalMillis * 2) {
       if (taskMetadata.getAttempts() < maxTaskAttempts) {
         // We've missed two keep-alives so we'll assume this task is dead and try again
@@ -158,13 +158,13 @@ public class TaskListener<T, R> implements MessageListener<T> {
       TaskMetadata taskMetadata,
       String failureReason)
       throws PulsarClientException {
-    TaskMetadata failedTaskMetadata = taskMetadata.fail(clock.millis(), failureReason);
+    var failedTaskMetadata = taskMetadata.fail(clock.millis(), failureReason);
     taskMetadataUpdater.update(failedTaskMetadata);
     handleFailed(taskConsumer, taskMessage, failedTaskMetadata);
   }
 
   private Optional<Duration> getMaxTaskDuration(Message<T> message) {
-    Optional<String> header = TaskProperties.MAX_TASK_DURATION.from(message);
+    var header = TaskProperties.MAX_TASK_DURATION.from(message);
     try {
       return header.map(Duration::parse);
     } catch (DateTimeException e) {

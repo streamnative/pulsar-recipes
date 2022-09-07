@@ -35,10 +35,10 @@ class TaskMetadataView<T> {
   private final Schema<T> taskSchema;
 
   TaskMetadata get(Message<T> message) {
-    String messageId = message.getMessageId().toString();
-    TaskMetadata taskMetadata = tableView.get(messageId);
+    var messageId = message.getMessageId().toString();
+    var taskMetadata = tableView.get(messageId);
     if (taskMetadata == null) {
-      byte[] encodedTask = taskSchema.encode(message.getValue());
+      var encodedTask = taskSchema.encode(message.getValue());
       return TaskMetadata.of(messageId, clock.millis(), encodedTask);
     }
     return taskMetadata;

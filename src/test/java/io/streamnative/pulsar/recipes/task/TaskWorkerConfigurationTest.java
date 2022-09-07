@@ -34,7 +34,7 @@ class TaskWorkerConfigurationTest {
 
   @Test
   void getters() {
-    TaskWorkerConfiguration<String, Integer> configuration =
+    var configuration =
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.INT32)
             .taskTopic("tasks")
             .subscription("subscription")
@@ -48,14 +48,14 @@ class TaskWorkerConfigurationTest {
     assertThat(configuration.getKeepAliveInterval()).isEqualTo(Duration.ofMinutes(5));
     assertThat(configuration.getTaskRedeliveryDelay()).isEqualTo(Duration.ofMinutes(5));
     assertThat(configuration.getRetention()).isEqualTo(Duration.ofDays(1));
-    //    assertThat(configuration.getExpirationRedeliveryDelay()).isEqualTo(Duration.ofMinutes(5));
+    assertThat(configuration.getWorkerTaskTimeout()).isEqualTo(ZERO);
     assertThat(configuration.getShutdownTimeout()).isEqualTo(Duration.ofSeconds(10));
   }
 
   @ParameterizedTest
   @MethodSource("validationParameters")
   void validation(UnaryOperator<Builder<?, ?>> function, boolean valid) {
-    Builder<String, String> builder =
+    var builder =
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic("tasks")
             .subscription("subscription");
@@ -81,7 +81,7 @@ class TaskWorkerConfigurationTest {
                     .taskRedeliveryDelay(ONE_SECOND)
                     .keepAliveInterval(ONE_SECOND)
                     .retention(ONE_SECOND)
-                    //                    .expirationRedeliveryDelay(ONE_SECOND)
+                    .workerTaskTimeout(ONE_SECOND)
                     .shutdownTimeout(ONE_SECOND),
             true),
         args(builder -> builder.taskTopic(null), false),
@@ -97,10 +97,9 @@ class TaskWorkerConfigurationTest {
         args(builder -> builder.keepAliveInterval(null), false),
         args(builder -> builder.retention(ZERO), false),
         args(builder -> builder.retention(null), false),
-        //        args(builder -> builder.expirationRedeliveryDelay(ZERO), false),
-        //        args(builder -> builder.expirationRedeliveryDelay(null), false),
         args(builder -> builder.shutdownTimeout(ZERO), false),
-        args(builder -> builder.shutdownTimeout(null), false));
+        args(builder -> builder.shutdownTimeout(null), false),
+        args(builder -> builder.workerTaskTimeout(null), false));
   }
 
   private static Arguments args(UnaryOperator<Builder<?, ?>> builderConsumer, boolean valid) {

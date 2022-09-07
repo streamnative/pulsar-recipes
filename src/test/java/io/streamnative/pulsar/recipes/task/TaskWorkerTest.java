@@ -27,7 +27,6 @@ import java.util.concurrent.ExecutorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -54,7 +53,7 @@ class TaskWorkerTest {
 
     taskWorker.close();
 
-    InOrder inOrder = Mockito.inOrder(executor, closeable1, closeable2);
+    var inOrder = Mockito.inOrder(executor, closeable1, closeable2);
     inOrder.verify(executor).shutdown();
     inOrder.verify(executor).awaitTermination(TIMEOUT, MILLISECONDS);
     inOrder.verify(executor).shutdownNow();
@@ -68,7 +67,7 @@ class TaskWorkerTest {
 
     taskWorker.close();
 
-    InOrder inOrder = Mockito.inOrder(executor, closeable1, closeable2);
+    var inOrder = Mockito.inOrder(executor, closeable1, closeable2);
     inOrder.verify(executor).shutdown();
     inOrder.verify(executor).awaitTermination(TIMEOUT, MILLISECONDS);
     verify(executor, never()).shutdownNow();
@@ -82,7 +81,7 @@ class TaskWorkerTest {
 
     taskWorker.close();
 
-    InOrder inOrder = Mockito.inOrder(executor, closeable1, closeable2);
+    var inOrder = Mockito.inOrder(executor, closeable1, closeable2);
     inOrder.verify(executor).shutdown();
     inOrder.verify(executor).awaitTermination(TIMEOUT, MILLISECONDS);
     inOrder.verify(executor).shutdownNow();
@@ -97,7 +96,7 @@ class TaskWorkerTest {
 
     taskWorker.close();
 
-    InOrder inOrder = Mockito.inOrder(executor, closeable1, closeable2);
+    var inOrder = Mockito.inOrder(executor, closeable1, closeable2);
     inOrder.verify(executor).shutdown();
     inOrder.verify(executor).awaitTermination(TIMEOUT, MILLISECONDS);
     verify(executor, never()).shutdownNow();

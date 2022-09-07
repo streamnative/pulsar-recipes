@@ -55,7 +55,7 @@ class ProcessExecutorTest {
 
     when(process.apply(TASK)).thenReturn(RESULT);
 
-    String result = processExecutor.execute(TASK, NoMaxDuration, keepAlive);
+    var result = processExecutor.execute(TASK, NoMaxDuration, keepAlive);
 
     assertThat(result).isEqualTo(RESULT);
     verify(keepAlive, never()).update();
@@ -63,8 +63,7 @@ class ProcessExecutorTest {
 
   @Test
   void processorThrowsException() throws Exception {
-    ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
+    var processExecutor = new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
 
     when(process.apply(TASK)).thenThrow(new Exception("failed"));
 
@@ -78,8 +77,7 @@ class ProcessExecutorTest {
 
   @Test
   void processorHasDelay() throws Exception {
-    ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(75L));
+    var processExecutor = new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(75L));
 
     when(process.apply(TASK))
         .thenAnswer(
@@ -88,7 +86,7 @@ class ProcessExecutorTest {
               return RESULT;
             });
 
-    String result = processExecutor.execute(TASK, NoMaxDuration, keepAlive);
+    var result = processExecutor.execute(TASK, NoMaxDuration, keepAlive);
 
     assertThat(result).isEqualTo(RESULT);
     verify(keepAlive, times(1)).update();
@@ -96,8 +94,7 @@ class ProcessExecutorTest {
 
   @Test
   void processorInterrupted() throws Exception {
-    ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
+    var processExecutor = new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
 
     when(process.apply(TASK))
         .thenAnswer(
@@ -115,7 +112,7 @@ class ProcessExecutorTest {
 
   @Test
   void processTaskWithinDuration() throws Exception {
-    Optional<Duration> oneHour = Optional.of(Duration.ofHours(1L));
+    var oneHour = Optional.of(Duration.ofHours(1L));
     when(clock.instant())
         .thenReturn(Instant.ofEpochMilli(0), Instant.ofEpochMilli(MINUTES.toMillis(5)));
     ProcessExecutor<String, String> processExecutor =
@@ -128,18 +125,17 @@ class ProcessExecutorTest {
               return RESULT;
             });
 
-    String result = processExecutor.execute(TASK, oneHour, keepAlive);
+    var result = processExecutor.execute(TASK, oneHour, keepAlive);
     assertThat(result).isEqualTo(RESULT);
   }
 
   @Test
   @Timeout(value = 10, unit = SECONDS)
   void processTaskExceedsDuration() throws Exception {
-    Optional<Duration> oneHour = Optional.of(Duration.ofHours(1L));
+    var oneHour = Optional.of(Duration.ofHours(1L));
     when(clock.instant())
         .thenReturn(Instant.ofEpochMilli(0), Instant.ofEpochMilli(MINUTES.toMillis(65)));
-    ProcessExecutor<String, String> processExecutor =
-        new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
+    var processExecutor = new ProcessExecutor<>(executor, process, clock, Duration.ofMillis(100L));
 
     when(process.apply(TASK))
         .thenAnswer(

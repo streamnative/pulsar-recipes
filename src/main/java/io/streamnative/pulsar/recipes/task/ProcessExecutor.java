@@ -19,12 +19,10 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import java.time.Clock;
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +45,8 @@ class ProcessExecutor<T, R> {
 
   R execute(T task, Optional<Duration> maxTaskDuration, KeepAlive keepAlive)
       throws ProcessException {
-    Instant start = clock.instant();
-    ScheduledFuture<R> future = executor.schedule(() -> this.process.apply(task), 0L, MILLISECONDS);
+    var start = clock.instant();
+    var future = executor.schedule(() -> this.process.apply(task), 0L, MILLISECONDS);
     try {
       while (!future.isDone()) {
         try {

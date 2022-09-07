@@ -70,12 +70,12 @@ class TaskMetadataTest {
 
   @Test
   void serde() {
-    TaskMetadata taskMetadata =
+    var taskMetadata =
         new TaskMetadata(
             MESSAGE_ID, COMPLETED, now, newNow, 0, ENCODED_TASK, ENCODED_RESULT, FAILURE_REASON);
-    Schema<TaskMetadata> schema = Schema.JSON(TaskMetadata.class);
-    byte[] bytes = schema.encode(taskMetadata);
-    TaskMetadata result = schema.decode(bytes);
+    var schema = Schema.JSON(TaskMetadata.class);
+    var bytes = schema.encode(taskMetadata);
+    var result = schema.decode(bytes);
     assertThat(result).isEqualTo(taskMetadata);
   }
 }

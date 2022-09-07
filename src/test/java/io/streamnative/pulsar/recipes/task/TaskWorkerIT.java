@@ -33,7 +33,6 @@ import lombok.Cleanup;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Message;
-import org.apache.pulsar.client.api.MessageId;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.Schema;
@@ -90,12 +89,12 @@ public class TaskWorkerIT {
   @Test
   @Timeout(30)
   void success() throws Exception {
-    String taskTopic = randomUUID().toString();
+    var taskTopic = randomUUID().toString();
     createResources(taskTopic);
 
     Process<String, String> process = task -> "bar";
 
-    TaskWorkerConfiguration<String, String> configuration =
+    var configuration =
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
@@ -104,18 +103,18 @@ public class TaskWorkerIT {
 
     @SuppressWarnings("unused")
     @Cleanup
-    TaskWorker ignore = TaskWorker.create(client, process, configuration);
+    var ignore = TaskWorker.create(client, process, configuration);
 
-    long before = clock.millis();
-    MessageId messageId =
+    var before = clock.millis();
+    var messageId =
         taskProducer
             .newMessage()
             .property(MAX_TASK_DURATION.key(), MAX_TASK_DURATION.of("PT3H"))
             .value("foo")
             .send();
 
-    Message<TaskMetadata> firstMessage = nextMessage(5);
-    long now = clock.millis();
+    var firstMessage = nextMessage(5);
+    var now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId.toString())
         .hasMessageId(messageId)
@@ -127,7 +126,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskMetadata> secondMessage = nextMessage(5);
+    var secondMessage = nextMessage(5);
     assertMessage(secondMessage)
         .hasKey(messageId.toString())
         .hasMessageId(messageId)
@@ -147,10 +146,10 @@ public class TaskWorkerIT {
   @Test
   @Timeout(30)
   void retryWithRecovery() throws Exception {
-    String taskTopic = randomUUID().toString();
+    var taskTopic = randomUUID().toString();
     createResources(taskTopic);
 
-    AtomicBoolean succeed = new AtomicBoolean();
+    var succeed = new AtomicBoolean();
     Process<String, String> process =
         task -> {
           if (succeed.compareAndSet(false, true)) {
@@ -159,7 +158,7 @@ public class TaskWorkerIT {
           return "bar";
         };
 
-    TaskWorkerConfiguration<String, String> configuration =
+    var configuration =
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
@@ -168,13 +167,13 @@ public class TaskWorkerIT {
 
     @SuppressWarnings("unused")
     @Cleanup
-    TaskWorker ignore = TaskWorker.create(client, process, configuration);
+    var ignore = TaskWorker.create(client, process, configuration);
 
-    long before = clock.millis();
-    String messageId = taskProducer.send("foo").toString();
+    var before = clock.millis();
+    var messageId = taskProducer.send("foo").toString();
 
-    Message<TaskMetadata> firstMessage = nextMessage(5);
-    long now = clock.millis();
+    var firstMessage = nextMessage(5);
+    var now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -186,7 +185,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskMetadata> secondMessage = nextMessage(5);
+    var secondMessage = nextMessage(5);
     assertMessage(secondMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -198,7 +197,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason("Processing error: failed");
 
-    Message<TaskMetadata> thirdMessage = nextMessage(5);
+    var thirdMessage = nextMessage(5);
     assertMessage(thirdMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -210,7 +209,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskMetadata> fourthMessage = nextMessage(5);
+    var fourthMessage = nextMessage(5);
     assertMessage(fourthMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -230,7 +229,7 @@ public class TaskWorkerIT {
   @Test
   @Timeout(30)
   void terminalFailure() throws Exception {
-    String taskTopic = randomUUID().toString();
+    var taskTopic = randomUUID().toString();
     createResources(taskTopic);
 
     Process<String, String> process =
@@ -238,7 +237,7 @@ public class TaskWorkerIT {
           throw new Exception("failed");
         };
 
-    TaskWorkerConfiguration<String, String> configuration =
+    var configuration =
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
@@ -248,13 +247,13 @@ public class TaskWorkerIT {
 
     @SuppressWarnings("unused")
     @Cleanup
-    TaskWorker ignore = TaskWorker.create(client, process, configuration);
+    var ignore = TaskWorker.create(client, process, configuration);
 
-    long before = clock.millis();
-    String messageId = taskProducer.send("foo").toString();
+    var before = clock.millis();
+    var messageId = taskProducer.send("foo").toString();
 
-    Message<TaskMetadata> firstMessage = nextMessage(5);
-    long now = clock.millis();
+    var firstMessage = nextMessage(5);
+    var now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -266,7 +265,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskMetadata> secondMessage = nextMessage(5);
+    var secondMessage = nextMessage(5);
     assertMessage(secondMessage)
         .hasKey(messageId)
         .hasMessageId(messageId)
@@ -286,7 +285,7 @@ public class TaskWorkerIT {
   @Test
   @Timeout(30)
   void firstAttemptExceedsMaxDuration() throws Exception {
-    String taskTopic = randomUUID().toString();
+    var taskTopic = randomUUID().toString();
     createResources(taskTopic);
     Process<String, String> process =
         new Process<String, String>() {
@@ -299,7 +298,7 @@ public class TaskWorkerIT {
           }
         };
 
-    TaskWorkerConfiguration<String, String> configuration =
+    var configuration =
         TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
             .taskTopic(taskTopic)
             .subscription("subscription")
@@ -310,18 +309,18 @@ public class TaskWorkerIT {
 
     @SuppressWarnings("unused")
     @Cleanup
-    TaskWorker ignore = TaskWorker.create(client, process, configuration);
+    var ignore = TaskWorker.create(client, process, configuration);
 
-    long before = clock.millis();
-    MessageId messageId =
+    var before = clock.millis();
+    var messageId =
         taskProducer
             .newMessage()
             .property(MAX_TASK_DURATION.key(), MAX_TASK_DURATION.of("PT3S"))
             .value("foo")
             .send();
 
-    Message<TaskMetadata> firstMessage = nextMessage(5);
-    long now = clock.millis();
+    var firstMessage = nextMessage(5);
+    var now = clock.millis();
     assertMessage(firstMessage)
         .hasKey(messageId.toString())
         .hasMessageId(messageId)
@@ -333,7 +332,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskMetadata> secondMessage = nextMessage(20);
+    var secondMessage = nextMessage(20);
     assertMessage(secondMessage)
         .hasKey(messageId.toString())
         .hasMessageId(messageId)
@@ -345,7 +344,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason("Process was cancelled: null");
 
-    Message<TaskMetadata> thirdMessage = nextMessage(5);
+    var thirdMessage = nextMessage(5);
     assertMessage(thirdMessage)
         .hasKey(messageId.toString())
         .hasMessageId(messageId)
@@ -357,7 +356,7 @@ public class TaskWorkerIT {
         .hasResult(null, Schema.STRING)
         .hasFailureReason(null);
 
-    Message<TaskMetadata> fourthMessage = nextMessage(5);
+    var fourthMessage = nextMessage(5);
     assertMessage(fourthMessage)
         .hasKey(messageId.toString())
         .hasMessageId(messageId)
@@ -375,7 +374,7 @@ public class TaskWorkerIT {
   }
 
   private Message<TaskMetadata> nextMessage(int timeout) throws Exception {
-    Message<TaskMetadata> message = metadataConsumer.receive(timeout, SECONDS);
+    var message = metadataConsumer.receive(timeout, SECONDS);
     if (message != null) {
       metadataConsumer.acknowledge(message);
     }
