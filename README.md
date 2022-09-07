@@ -41,6 +41,7 @@ exceeded a time-based processing budget.
   * When the task is in a terminal state, the metadata is scheduled for reconsumption and subsequent eviction.
 
 #### Limitations
+
 * You task producer must not use batching to ensure the individual allocation of tasks to workers. To do this use
   `enableBatching(false)`.
 * In the event of a non-progressing worker, the tasks allocated to that worker will not be released to another worker
