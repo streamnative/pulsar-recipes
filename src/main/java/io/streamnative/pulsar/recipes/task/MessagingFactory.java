@@ -37,7 +37,6 @@ class MessagingFactory<T> {
   private final Schema<TaskMetadata> metadataSchema;
   private final TaskWorkerConfiguration<T, ?> configuration;
 
-  // We consume the state events twice - once for the tableView and once for expiration
   TableView<TaskMetadata> taskMetadataTableView() throws PulsarClientException {
     return client
         .newTableViewBuilder(metadataSchema)
