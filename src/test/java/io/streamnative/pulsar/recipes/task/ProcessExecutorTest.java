@@ -25,15 +25,14 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
 import io.streamnative.pulsar.recipes.task.ProcessExecutor.KeepAlive;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,7 +42,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class ProcessExecutorTest {
   private static final Optional<Duration> NoMaxDuration = Optional.empty();
-  private final ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+  private final ExecutorService executor = Executors.newSingleThreadExecutor();
   @Mock private Process<String, String> process;
   @Mock private KeepAlive keepAlive;
   @Mock private Clock clock;

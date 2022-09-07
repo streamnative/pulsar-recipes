@@ -17,7 +17,7 @@ package io.streamnative.pulsar.recipes.task;
 
 import static java.time.Clock.systemUTC;
 import static java.util.Collections.unmodifiableList;
-import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.Executors.newSingleThreadExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static lombok.AccessLevel.PACKAGE;
 
@@ -41,7 +41,7 @@ public class TaskWorker implements AutoCloseable {
   public static <T, R> TaskWorker create(
       PulsarClient client, Process<T, R> process, TaskWorkerConfiguration<T, R> configuration)
       throws PulsarClientException {
-    var executor = newSingleThreadScheduledExecutor();
+    var executor = newSingleThreadExecutor();
     var clock = systemUTC();
 
     var stateSchema = Schema.JSON(TaskMetadata.class);
