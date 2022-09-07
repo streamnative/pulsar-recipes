@@ -15,8 +15,6 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-import static java.util.Objects.requireNonNull;
-
 import java.time.Duration;
 import java.util.Optional;
 import lombok.NonNull;
@@ -38,8 +36,7 @@ public enum TaskProperties {
     }
 
     @Override
-    String of(String value) {
-      requireNonNull(value);
+    String of(@NonNull String value) {
       Duration.parse(value);
       return value;
     }
