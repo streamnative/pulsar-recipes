@@ -21,7 +21,7 @@ exceeded a time-based processing budget.
 #### Terminology
 
 * **Process**: An actionable implementation of work that takes input and yields an output.
-* **Task**: A specific set of inputs that on which a is process applied to yield a result.
+* **Task**: A specific set of inputs on which a process is applied to yield a result.
 * **Metadata**: Data pertaining to the execution of a process on a given task.
 * **Worker**: A node that consumes tasks and processes them.
 * **Client**: A participant that submits tasks for processing and consumes the results.
