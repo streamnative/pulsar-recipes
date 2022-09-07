@@ -23,7 +23,7 @@ import lombok.NonNull;
 import org.apache.pulsar.client.api.Message;
 
 /**
- * Message properties understood my the system that may direct the behaviour of the system's
+ * Message properties understood by the system that may direct the behaviour of the system's
  * processing of the task.
  */
 public enum TaskProperties {
