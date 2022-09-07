@@ -40,7 +40,7 @@ import org.apache.pulsar.client.api.Schema;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class TaskListener<T, R> implements MessageListener<T> {
+class TaskListener<T, R> implements MessageListener<T> {
   private final TaskMetadataView<T> taskMetadataView;
   private final TaskMetadataUpdater taskMetadataUpdater;
   private final ProcessExecutor<T, R> processExecutor;
