@@ -137,7 +137,7 @@ TaskWorker worker = TaskWorker.create(client, process, configuration);
 
 Requirements:
 
-* JDK 8
+* JDK 11
 * Maven 3.8.6+
 
 Common build actions:
