@@ -1,4 +1,3 @@
-
 # Pulsar Recipes
 
 [//]: # (TODO README badges https://shields.io/)
@@ -10,6 +9,7 @@ reliability and scalability.
 ## Recipes
 
 ### Long Running Tasks
+
 A distributed work queue for long-running tasks. A particular challenge with long-running tasks is that such a system is
 more susceptible to consumer connection interruptions. These interruptions would result in message redeliveries and
 duplicate processing of the tasks. This system seeks to avoid this problem by maintaining a global task state in a
@@ -19,6 +19,7 @@ The work scheduler supports task retries, detection of non-progressing work, and
 exceeded a time-based processing budget.
 
 #### Terminology
+
 * **Process**: An actionable implementation of work that takes input and yields an output.
 * **Task**: A specific set of inputs that on which a is process applied to yield a result.
 * **Metadata**: Data pertaining to the execution of a process on a given task.
@@ -26,6 +27,7 @@ exceeded a time-based processing budget.
 * **Client**: A participant that submits tasks for processing and consumes the results.
 
 #### Methodology
+
 * Tasks
   * Tasks are submitted to a worker queue and are consumed by tasks workers for processing.
   * State is maintained for a task as a sequence of `TaskMetadata` entries in a separate topic.
@@ -39,7 +41,8 @@ exceeded a time-based processing budget.
   * When the task is in a terminal state, the metadata is scheduled for reconsumption and subsequent eviction.
 
 #### Limitations
-In the event of a non-progressing worker, the tasks allocated to that worker will not be released to another worker 
+
+In the event of a non-progressing worker, the tasks allocated to that worker will not be released to another worker
 and the task will remain stuck. This can be alleviated by setting `TaskConfiguration.workerTaskTimeout` to a value
 greater than the longest expected running time of any task (including all retries).
 
@@ -136,13 +139,13 @@ Requirements:
 
 Common build actions:
 
-| Action                          | Command                                  |
+|             Action              |                 Command                  |
 |---------------------------------|------------------------------------------|
 | Full build and test             | `mvn clean verify`                       |
-| Skip tests                      | `mvn clean verify -DskipTests`           |           
+| Skip tests                      | `mvn clean verify -DskipTests`           |
 | Skip Jacoco test coverage check | `mvn clean verify -Djacoco.skip`         |
 | Skip Checkstyle standards check | `mvn clean verify -Dcheckstyle.skip`     |
-| Skip Spotless formatting check  | `mvn clean verify -Dspotless.check.skip` | 
+| Skip Spotless formatting check  | `mvn clean verify -Dspotless.check.skip` |
 | Format code                     | `mvn spotless:apply`                     |
 | Generate license headers        | `mvn license:format`                     |
 
