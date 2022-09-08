@@ -19,7 +19,7 @@ buildNumber.properties
 .jenv-version
 
 ## IntelliJ
-.idea
+.idea/
 out/
 
 ### macOS template

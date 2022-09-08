@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.streamnative.pulsar.recipes;
+package io.streamnative.pulsar.recipes.task;
 
-
-import org.junit.jupiter.api.Test;
-
-public class MainTest {
-
-  @Test
-  public void nullTest() {
-    Main.main(null);
-    new Main().toString();
-  }
+/** The last known state of the processing of a task. */
+public enum TaskState {
+  NEW,
+  PROCESSING,
+  FAILED,
+  COMPLETED,
+  UNKNOWN
 }

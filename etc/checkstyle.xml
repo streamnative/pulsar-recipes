@@ -19,7 +19,6 @@
 <!DOCTYPE module PUBLIC
         "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
         "https://checkstyle.org/dtds/configuration_1_3.dtd">
-
 <!--
 
   Checkstyle configuration that firstly conforms to the Google Java Code style

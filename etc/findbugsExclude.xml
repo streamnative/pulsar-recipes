@@ -15,5 +15,23 @@
     limitations under the License.
 
 -->
+<!--TODO fix serializable issues with TaskMetadataEvictionListener & TaskListener -->
+<!--TODO fix exposing mutable state in TaskWorkerConfiguration & TaskMetadata -->
 <FindBugsFilter>
+  <Match>
+    <Class name="io.streamnative.pulsar.recipes.task.TaskWorkerConfiguration"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Class name="io.streamnative.pulsar.recipes.task.TaskMetadataEvictionListener"/>
+    <Bug pattern="SE_BAD_FIELD"/>
+  </Match>
+  <Match>
+    <Class name="io.streamnative.pulsar.recipes.task.TaskListener"/>
+    <Bug pattern="SE_BAD_FIELD,EI_EXPOSE_REP2"/>
+  </Match>
+  <Match>
+    <Class name="io.streamnative.pulsar.recipes.task.TaskMetadata"/>
+    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2"/>
+  </Match>
 </FindBugsFilter>
