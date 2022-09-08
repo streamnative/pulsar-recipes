@@ -116,7 +116,7 @@ PulsarClient client = PulsarClient.builder()
     .serviceUrl("pulsar://localhost:6650")
     .build();
 
-TaskProcessor<Task, Result> process = process -> new Result("Hello " + process.getName());
+TaskProcessor<Task, Result> process = task -> new Result("Hello " + task.getName());
 
 TaskWorkerConfiguration<Task, Result> configuration = TaskWorkerConfiguration
     .builder(Schema.JSON(Task.class), Schema.JSON(Result.class))
