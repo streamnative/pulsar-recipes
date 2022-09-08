@@ -24,7 +24,6 @@
     <groupId>io.streamnative</groupId>
     <artifactId>pulsar-recipes</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
 
   <artifactId>pulsar-recipes-long-running-tasks</artifactId>
