@@ -28,7 +28,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.apache.pulsar.client.api.Schema;
 
 /** Responsible for the processing of tasks and management of resulting task metadata. */
 @Slf4j
@@ -44,9 +43,7 @@ public class TaskWorker implements AutoCloseable {
     var executor = newSingleThreadExecutor();
     var clock = systemUTC();
 
-    var stateSchema = Schema.JSON(TaskMetadata.class);
-
-    var factory = new MessagingFactory<>(client, stateSchema, configuration);
+    var factory = new MessagingFactory<>(client, configuration);
     var closeables = new ArrayList<AutoCloseable>();
 
     var metadataProducer = factory.taskMetadataProducer();

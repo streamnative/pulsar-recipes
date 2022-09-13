@@ -51,7 +51,7 @@ class MessagingFactoryTest {
 
   @BeforeEach
   void beforeEach() {
-    messagingFactory = new MessagingFactory<>(client, metadataSchema, configuration);
+    messagingFactory = new MessagingFactory<>(client, configuration);
   }
 
   @Test

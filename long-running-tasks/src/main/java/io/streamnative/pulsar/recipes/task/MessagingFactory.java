@@ -23,7 +23,6 @@ import org.apache.pulsar.client.api.Consumer;
 import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.PulsarClientException;
-import org.apache.pulsar.client.api.Schema;
 import org.apache.pulsar.client.api.TableView;
 
 /**
@@ -34,19 +33,18 @@ import org.apache.pulsar.client.api.TableView;
 @RequiredArgsConstructor
 class MessagingFactory<T> {
   private final PulsarClient client;
-  private final Schema<TaskMetadata> metadataSchema;
   private final TaskWorkerConfiguration<T, ?> configuration;
 
   TableView<TaskMetadata> taskMetadataTableView() throws PulsarClientException {
     return client
-        .newTableViewBuilder(metadataSchema)
+        .newTableViewBuilder(configuration.getMetadataSchema())
         .topic(configuration.getMetadataTopic())
         .create();
   }
 
   Producer<TaskMetadata> taskMetadataProducer() throws PulsarClientException {
     return client
-        .newProducer(metadataSchema)
+        .newProducer(configuration.getMetadataSchema())
         .topic(configuration.getMetadataTopic())
         .enableBatching(false)
         .create();
@@ -55,7 +53,7 @@ class MessagingFactory<T> {
   Consumer<TaskMetadata> metadataEvictionConsumer(TaskMetadataEvictionListener evictionListener)
       throws PulsarClientException {
     return client
-        .newConsumer(metadataSchema)
+        .newConsumer(configuration.getMetadataSchema())
         .topic(configuration.getMetadataTopic())
         .subscriptionName(configuration.getSubscription())
         .subscriptionType(Shared)

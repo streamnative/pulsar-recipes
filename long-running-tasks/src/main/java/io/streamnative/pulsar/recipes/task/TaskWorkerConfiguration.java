@@ -38,6 +38,7 @@ import org.apache.pulsar.client.api.Schema;
 public class TaskWorkerConfiguration<T, R> {
   private final Schema<T> taskSchema;
   private final Schema<R> resultSchema;
+  private final Schema<TaskMetadata> metadataSchema;
   private final String taskTopic;
   private final String metadataTopic;
   private final String subscription;
@@ -56,6 +57,7 @@ public class TaskWorkerConfiguration<T, R> {
   public static class Builder<T, R> {
     private final Schema<T> taskSchema;
     private final Schema<R> resultSchema;
+    private Schema<TaskMetadata> metadataSchema = Schema.JSON(TaskMetadata.class);
     private String taskTopic;
     private String stateTopic;
     private String subscription;
@@ -65,6 +67,11 @@ public class TaskWorkerConfiguration<T, R> {
     private Duration taskRedeliveryDelay = Duration.ofMinutes(5);
     private Duration retention = Duration.ofDays(1);
     private Duration shutdownTimeout = Duration.ofSeconds(10);
+
+    public Builder<T, R> metadataSchema(@NonNull Schema<TaskMetadata> metadataSchema) {
+      this.metadataSchema = metadataSchema;
+      return this;
+    }
 
     /**
      * The topic that the worker will listen for tasks on.
@@ -202,6 +209,7 @@ public class TaskWorkerConfiguration<T, R> {
       return new TaskWorkerConfiguration<>(
           taskSchema,
           resultSchema,
+          metadataSchema,
           taskTopic,
           stateTopic,
           subscription,
