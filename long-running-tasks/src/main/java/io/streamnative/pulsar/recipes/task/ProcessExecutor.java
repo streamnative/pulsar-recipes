@@ -66,10 +66,10 @@ class ProcessExecutor<T, R> {
       }
       return future.get();
     } catch (CancellationException e) {
-      throw new ProcessException("Process was cancelled", e);
+      throw new ProcessException("Process was cancelled.", e);
     } catch (InterruptedException e) {
       Thread.currentThread().interrupt();
-      throw new ProcessException("Task worker thread interrupted", e);
+      throw new ProcessException("Process was interrupted.", e);
     } catch (ExecutionException e) {
       throw new ProcessException("Processing error", e.getCause());
     } catch (Exception e) {
