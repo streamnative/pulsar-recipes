@@ -43,9 +43,9 @@ class MessagingFactoryTest {
   private final TaskWorkerConfiguration<String, String> configuration =
       TaskWorkerConfiguration.builder(Schema.STRING, Schema.STRING)
           .taskTopic("tasks")
+          .metadataSchema(metadataSchema)
           .subscription("subscription")
           .retention(Duration.ofSeconds(1))
-          //          .expirationRedeliveryDelay(Duration.ofSeconds(1))
           .build();
   private MessagingFactory<String> messagingFactory;
 
