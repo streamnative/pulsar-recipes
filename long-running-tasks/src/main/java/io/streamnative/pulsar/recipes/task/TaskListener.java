@@ -110,7 +110,7 @@ class TaskListener<T, R> implements MessageListener<T> {
       taskMetadataUpdater.update(updatedMetadata);
       taskConsumer.acknowledge(taskMessage);
     } catch (ProcessException e) {
-      log.error("Error while processing task: {}", updatedMetadata, e);
+      log.debug("Error while processing task: {}", updatedMetadata, e);
       handleError(
           taskConsumer,
           taskMessage,
