@@ -225,7 +225,8 @@ public class Soak {
             }
           }
           log.info(
-              "Received: {}, Inconsistent: {}, MissedResult: {}, MissedCancellation: {}, MissedExcecption: {}, UnexpectedResult: {}, UnexpectedState: {}",
+              "Received: {}, Inconsistent: {}, MissedResult: {}, MissedCancellation: {}, MissedExcecption: {}, "
+                      + "UnexpectedResult: {}, UnexpectedState: {}",
               received,
               incompleteScenarios,
               missedResults,
