@@ -300,11 +300,10 @@ public class Soak {
     }
   }
 
-  @AllArgsConstructor(access = AccessLevel.PRIVATE)
-  @ToString
+  @Value
   static class Result {
-    @Getter private final long elapsedTimeMs;
-    @Getter private final int iteration;
+    long elapsedTimeMs;
+    int iteration;
   }
 
   @RequiredArgsConstructor
