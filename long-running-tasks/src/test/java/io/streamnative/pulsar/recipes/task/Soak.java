@@ -101,7 +101,7 @@ public class Soak {
   private Consumer<TaskMetadata> consumer;
 
   private void createResources(String taskTopic) throws Exception {
-    client = PulsarClient.builder().serviceUrl(pulsar.getPulsarBrokerUrl()).build();
+    client = newPulsarClient(pulsar.getPulsarBrokerUrl());
     producer = client.newProducer(taskSchema).topic(taskTopic).enableBatching(false).create();
     consumer =
         client
