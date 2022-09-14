@@ -69,6 +69,10 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+/**
+ * This is a soak test that is intended to be executed indpendently and with user-defined parameters
+ * to simulate their expected workloads.
+ */
 @Disabled
 @Slf4j
 @Testcontainers
@@ -116,12 +120,23 @@ public class Soak {
   @Test
   @Timeout(value = 4, unit = HOURS)
   void soak() throws Exception {
+    // Modify these parameters to match your expected workload.
     var soakTimeout = Duration.ofHours(4);
-    var maxRetries = 3;
+    var workerCount = 15;
+    var keepAliveInterval = Duration.ofSeconds(1);
     var taskCount = 100;
     var meanTaskTime = Duration.ofMinutes(5);
-    var workerCount = 15;
+    var maxRetries = 3;
+    var taskDurationDistribution =
+        new NormalDistribution(meanTaskTime.toSeconds(), meanTaskTime.toSeconds() / 2.0);
+    var taskOutcomeDistribution =
+        new EnumeratedDistribution<>(
+            List.of(
+                Pair.create(RESULT, 0.9),
+                Pair.create(EXCEPTION, 0.75),
+                Pair.create(TIMEOUT, 0.25)));
 
+    // Begin test
     var taskTopic = randomUUID().toString();
     createResources(taskTopic);
 
@@ -130,7 +145,7 @@ public class Soak {
             .taskTopic(taskTopic)
             .subscription("subscription")
             .retention(Duration.ofSeconds(1))
-            .keepAliveInterval(Duration.ofSeconds(1))
+            .keepAliveInterval(keepAliveInterval)
             .maxTaskAttempts(maxRetries)
             .build();
 
@@ -145,21 +160,14 @@ public class Soak {
     // Submit work
     //
     var tasks =
-        new TaskFactory(
-                maxRetries,
-                new NormalDistribution(meanTaskTime.toSeconds(), meanTaskTime.toSeconds() / 2.0),
-                new EnumeratedDistribution<>(
-                    List.of(
-                        Pair.create(RESULT, 0.9),
-                        Pair.create(EXCEPTION, 0.75),
-                        Pair.create(TIMEOUT, 0.25))))
+        new TaskFactory(maxRetries, taskDurationDistribution, taskOutcomeDistribution)
             .newTasks(taskCount);
 
     var unscheduledTasks =
-        tasks.stream().map(this::send).filter(o -> o.isPresent()).collect(toUnmodifiableSet());
+        tasks.stream().map(this::send).filter(Optional::isPresent).collect(toUnmodifiableSet());
     var scheduledTasks =
         tasks.stream().filter(t -> !unscheduledTasks.contains(t)).collect(toUnmodifiableList());
-    var cumulativeTaskTries = tasks.stream().flatMap(t -> t.getTryOutcomes().stream()).count();
+    var cumulativeTaskTries = tasks.stream().mapToLong(t -> t.getTryOutcomes().size()).sum();
     scheduledTasks.forEach(t -> log.debug("Task: {}", t));
 
     log.info("Successfully scheduled {} tasks out of {}", scheduledTasks.size(), tasks.size());
@@ -191,7 +199,7 @@ public class Soak {
         if (metadata != null && Set.of(COMPLETED, FAILED).contains(metadata.getState())) {
           received++;
           var task = taskSchema.decode(metadata.getTask());
-          var result = Optional.ofNullable(metadata.getResult()).map(b -> resultSchema.decode(b));
+          var result = Optional.ofNullable(metadata.getResult()).map(resultSchema::decode);
           var error = Optional.ofNullable(metadata.getFailureReason());
           if (task.getTryOutcomes().size() < metadata.getAttempts()) {
             incompleteScenarios++;
@@ -199,12 +207,12 @@ public class Soak {
             var outcome = task.getTryOutcomes().get(metadata.getAttempts() - 1);
             switch (outcome) {
               case RESULT:
-                if (!result.isPresent()) {
+                if (result.isEmpty()) {
                   missedResults++;
                 }
                 break;
               case TIMEOUT:
-                if (!error.isPresent() || !error.get().startsWith("Process was cancelled")) {
+                if (error.isEmpty() || !error.get().startsWith("Process was cancelled")) {
                   missedCancellations++;
                 }
                 if (result.isPresent()) {
@@ -212,7 +220,7 @@ public class Soak {
                 }
                 break;
               case EXCEPTION:
-                if (!error.isPresent() || !error.get().startsWith("Processing error")) {
+                if (error.isEmpty() || !error.get().startsWith("Processing error")) {
                   missedExceptions++;
                 }
                 if (result.isPresent()) {
@@ -224,6 +232,7 @@ public class Soak {
                 break;
             }
           }
+          // Ideally, all but 'received' should be 0
           log.info(
               "Received: {}, Inconsistent: {}, MissedResult: {}, MissedCancellation: {}, MissedExcecption: {}, "
                   + "UnexpectedResult: {}, UnexpectedState: {}",
@@ -242,7 +251,7 @@ public class Soak {
     log.info("Soak test completed after {}", Duration.between(start, clock.instant()));
 
     // close workers
-    workers.stream().forEach(w -> w.close());
+    workers.stream().forEach(TaskWorker::close);
 
     assertThat(received).isGreaterThanOrEqualTo(cumulativeTaskTries);
     assertThat(incompleteScenarios).isEqualTo(0);
@@ -301,7 +310,7 @@ public class Soak {
   @RequiredArgsConstructor
   static class DummyProcess implements Process<Task, Result> {
     private final Clock clock;
-    @Getter private Map<Task, Integer> retryTracker = new HashMap<>();
+    @Getter private final Map<Task, Integer> retryTracker = new HashMap<>();
 
     @Override
     public Result apply(@NonNull Task task) throws Exception {
@@ -334,7 +343,7 @@ public class Soak {
     private final EnumeratedDistribution<Outcome> outcomes;
 
     List<Task> newTasks(int count) {
-      return IntStream.range(0, count).mapToObj(i -> newTask(i)).collect(toUnmodifiableList());
+      return IntStream.range(0, count).mapToObj(this::newTask).collect(toUnmodifiableList());
     }
 
     Task newTask(int id) {
