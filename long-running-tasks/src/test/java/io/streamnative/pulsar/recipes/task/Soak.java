@@ -251,7 +251,7 @@ public class Soak {
     log.info("Soak test completed after {}", Duration.between(start, clock.instant()));
 
     // close workers
-    workers.stream().forEach(TaskWorker::close);
+    workers.forEach(TaskWorker::close);
 
     assertThat(received).isGreaterThanOrEqualTo(cumulativeTaskTries);
     assertThat(incompleteScenarios).isEqualTo(0);
