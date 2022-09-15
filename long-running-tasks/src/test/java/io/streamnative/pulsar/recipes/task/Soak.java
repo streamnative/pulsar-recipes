@@ -52,6 +52,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.ToString;
+import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.distribution.EnumeratedDistribution;
 import org.apache.commons.math3.distribution.NormalDistribution;
