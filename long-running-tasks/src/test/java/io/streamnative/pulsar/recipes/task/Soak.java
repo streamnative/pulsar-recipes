@@ -25,6 +25,9 @@ import static java.lang.Math.abs;
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toUnmodifiableList;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 import static org.apache.commons.lang3.RandomUtils.nextDouble;
@@ -171,15 +174,16 @@ public class Soak {
     scheduledTasks.forEach(t -> log.debug("Task: {}", t));
 
     log.info("Successfully scheduled {} tasks out of {}", scheduledTasks.size(), tasks.size());
+    var counts =
+        tasks.stream()
+            .flatMap(t -> t.getTryOutcomes().stream())
+            .collect(groupingBy(identity(), counting()));
     log.info(
         "Total expected task tries: {} (exception: {}, timeout: {}. success: {})",
         cumulativeTaskTries,
-        tasks.stream()
-            .flatMap(t -> t.getTryOutcomes().stream())
-            .filter(o -> o == EXCEPTION)
-            .count(),
-        tasks.stream().flatMap(t -> t.getTryOutcomes().stream()).filter(o -> o == TIMEOUT).count(),
-        tasks.stream().flatMap(t -> t.getTryOutcomes().stream()).filter(o -> o == RESULT).count());
+        counts.get(EXCEPTION),
+        counts.get(TIMEOUT),
+        counts.get(RESULT));
 
     // Collect results
     var received = 0L;
