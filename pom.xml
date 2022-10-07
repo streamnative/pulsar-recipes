@@ -22,7 +22,7 @@
 
   <groupId>io.streamnative</groupId>
   <artifactId>pulsar-recipes</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Pulsar Recipes</name>
   <inceptionYear>2022</inceptionYear>
@@ -52,15 +52,15 @@
 
     <assertj.version>3.23.1</assertj.version>
     <awaitility.version>4.2.0</awaitility.version>
-    <checkstyle.version>10.3.3</checkstyle.version>
+    <checkstyle.version>10.3.4</checkstyle.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
-    <junit.version>5.9.0</junit.version>
-    <logback.version>1.3.0</logback.version>
+    <junit.version>5.9.1</junit.version>
+    <logback.version>1.4.3</logback.version>
     <lombok.version>1.18.24</lombok.version>
-    <mockito.version>4.7.0</mockito.version>
+    <mockito.version>4.8.0</mockito.version>
     <pulsar.version>2.10.1</pulsar.version>
-    <slf4j.version>2.0.0</slf4j.version>
-    <testcontainers.version>1.17.3</testcontainers.version>
+    <slf4j.version>2.0.3</slf4j.version>
+    <testcontainers.version>1.17.5</testcontainers.version>
 
     <checkstyle.plugin.version>3.2.0</checkstyle.plugin.version>
     <jacoco.plugin.version>0.8.8</jacoco.plugin.version>

@@ -15,6 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
+import static io.streamnative.pulsar.recipes.task.SingletonPulsarContainer.pulsar;
 import static io.streamnative.pulsar.recipes.task.Soak.Task.Outcome.EXCEPTION;
 import static io.streamnative.pulsar.recipes.task.Soak.Task.Outcome.RESULT;
 import static io.streamnative.pulsar.recipes.task.Soak.Task.Outcome.TIMEOUT;
@@ -68,33 +69,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.testcontainers.containers.PulsarContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 /**
- * This is a soak test that is intended to be executed indpendently and with user-defined parameters
- * to simulate their expected workloads.
+ * This is a soak test that is intended to be executed independently and with user-defined
+ * parameters to simulate their expected workloads.
  */
 @Disabled
 @Slf4j
-@Testcontainers
 public class Soak {
-  private static final DockerImageName pulsarImage =
-      DockerImageName.parse("apachepulsar/pulsar").withTag("2.10.0");
-
-  @Container
-  private static final PulsarContainer pulsar =
-      new PulsarContainer(pulsarImage) {
-        @Override
-        protected void configure() {
-          super.configure();
-          withStartupTimeout(Duration.ofMinutes(3));
-          withEnv("PULSAR_PREFIX_delayedDeliveryTickTimeMillis", "5");
-        }
-      };
-
   private final Clock clock = Clock.systemUTC();
   private final Schema<Task> taskSchema = Schema.JSON(Task.class);
   private final Schema<TaskMetadata> metadataSchema = Schema.JSON(TaskMetadata.class);
