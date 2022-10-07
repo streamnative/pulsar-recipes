@@ -21,6 +21,7 @@ buildNumber.properties
 ## IntelliJ
 .idea/
 out/
+*.iml
 
 ### macOS template
 # General

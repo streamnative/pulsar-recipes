@@ -16,6 +16,7 @@
 package io.streamnative.pulsar.recipes.task;
 
 import static io.streamnative.pulsar.recipes.task.MessageAssert.assertMessage;
+import static io.streamnative.pulsar.recipes.task.SingletonPulsarContainer.pulsar;
 import static io.streamnative.pulsar.recipes.task.TaskProperties.MAX_TASK_DURATION;
 import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
 import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
@@ -37,37 +38,23 @@ import org.apache.pulsar.client.api.Producer;
 import org.apache.pulsar.client.api.PulsarClient;
 import org.apache.pulsar.client.api.Schema;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.testcontainers.containers.PulsarContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.utility.DockerImageName;
 
 @Slf4j
-@Testcontainers
 public class TaskWorkerIT {
-  private static final DockerImageName pulsarImage =
-      DockerImageName.parse("apachepulsar/pulsar").withTag("2.10.0");
-
-  @Container
-  private static final PulsarContainer pulsar =
-      new PulsarContainer(pulsarImage) {
-        @Override
-        protected void configure() {
-          super.configure();
-          withStartupTimeout(Duration.ofMinutes(3));
-          withEnv("PULSAR_PREFIX_delayedDeliveryTickTimeMillis", "5");
-        }
-      };
-
   private final Clock clock = Clock.systemUTC();
 
   private PulsarClient client;
   private Producer<String> taskProducer;
   private Consumer<TaskMetadata> metadataConsumer;
+  private String taskTopic;
 
-  private void createResources(String taskTopic) throws Exception {
+  @BeforeEach
+  void beforeEach() throws Exception {
+    taskTopic = randomUUID().toString();
+
     client = PulsarClient.builder().serviceUrl(pulsar.getPulsarBrokerUrl()).build();
 
     taskProducer =
@@ -82,16 +69,17 @@ public class TaskWorkerIT {
 
   @AfterEach
   void afterEach() throws Exception {
-    taskProducer.close();
-    metadataConsumer.close();
+    if (taskProducer != null) {
+      taskProducer.close();
+    }
+    if (metadataConsumer != null) {
+      metadataConsumer.close();
+    }
   }
 
   @Test
   @Timeout(30)
   void success() throws Exception {
-    var taskTopic = randomUUID().toString();
-    createResources(taskTopic);
-
     Process<String, String> process = task -> "bar";
 
     var configuration =
@@ -146,9 +134,6 @@ public class TaskWorkerIT {
   @Test
   @Timeout(30)
   void retryWithRecovery() throws Exception {
-    var taskTopic = randomUUID().toString();
-    createResources(taskTopic);
-
     var succeed = new AtomicBoolean();
     Process<String, String> process =
         task -> {
@@ -229,9 +214,6 @@ public class TaskWorkerIT {
   @Test
   @Timeout(30)
   void terminalFailure() throws Exception {
-    var taskTopic = randomUUID().toString();
-    createResources(taskTopic);
-
     Process<String, String> process =
         task -> {
           throw new Exception("failed");
@@ -285,10 +267,8 @@ public class TaskWorkerIT {
   @Test
   @Timeout(30)
   void firstAttemptExceedsMaxDuration() throws Exception {
-    var taskTopic = randomUUID().toString();
-    createResources(taskTopic);
     Process<String, String> process =
-        new Process<String, String>() {
+        new Process<>() {
           private final Iterator<Integer> durations = asList(6, 1).iterator();
 
           @Override
