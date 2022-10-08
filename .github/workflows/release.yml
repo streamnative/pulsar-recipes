@@ -51,4 +51,3 @@ jobs:
 
       - name: Deploy to Maven Central
         run: mvn clean deploy -DskipTests
-
