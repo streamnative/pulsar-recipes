@@ -13,24 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package io.streamnative.pulsar.recipes.task;
+package io.streamnative.pulsar.recipes.rpc.common;
 
+public final class RpcConstants {
+  private RpcConstants() {}
 
-import java.time.Duration;
-import org.testcontainers.containers.PulsarContainer;
-import org.testcontainers.utility.DockerImageName;
-
-class SingletonPulsarContainer {
-  private static final DockerImageName pulsarImage =
-      DockerImageName.parse("apachepulsar/pulsar").withTag("2.10.1");
-
-  static final PulsarContainer pulsar;
-
-  static {
-    pulsar =
-        new PulsarContainer(pulsarImage)
-            .withEnv("PULSAR_PREFIX_delayedDeliveryTickTimeMillis", "5")
-            .withStartupTimeout(Duration.ofMinutes(3));
-    pulsar.start();
-  }
+  public static final String RESPONSE_TOPIC = "response-topic";
+  public static final String ERROR_MESSAGE = "error-message";
 }

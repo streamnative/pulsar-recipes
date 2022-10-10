@@ -15,13 +15,13 @@
  */
 package io.streamnative.pulsar.recipes.task;
 
-import static io.streamnative.pulsar.recipes.task.SingletonPulsarContainer.pulsar;
 import static io.streamnative.pulsar.recipes.task.Soak.Task.Outcome.EXCEPTION;
 import static io.streamnative.pulsar.recipes.task.Soak.Task.Outcome.RESULT;
 import static io.streamnative.pulsar.recipes.task.Soak.Task.Outcome.TIMEOUT;
 import static io.streamnative.pulsar.recipes.task.TaskProperties.MAX_TASK_DURATION;
 import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
 import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
+import static io.streamnative.pulsar.recipes.test.SingletonPulsarContainer.pulsar;
 import static java.lang.Math.abs;
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.HOURS;

@@ -16,11 +16,11 @@
 package io.streamnative.pulsar.recipes.task;
 
 import static io.streamnative.pulsar.recipes.task.MessageAssert.assertMessage;
-import static io.streamnative.pulsar.recipes.task.SingletonPulsarContainer.pulsar;
 import static io.streamnative.pulsar.recipes.task.TaskProperties.MAX_TASK_DURATION;
 import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
 import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
 import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;
+import static io.streamnative.pulsar.recipes.test.SingletonPulsarContainer.pulsar;
 import static java.util.Arrays.asList;
 import static java.util.UUID.randomUUID;
 import static java.util.concurrent.TimeUnit.SECONDS;

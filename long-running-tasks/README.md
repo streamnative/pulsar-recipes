@@ -32,7 +32,7 @@ exceeded a time-based processing budget.
 
 ## Limitations
 
-* You task producer must not use batching to ensure the individual allocation of tasks to workers. To do this use
+* Your task producer must not use batching to ensure the individual allocation of tasks to workers. To do this use
   `enableBatching(false)`.
 * In the event of a non-progressing worker, the tasks allocated to that worker will not be released to another worker
   and the task will remain stuck. This can be alleviated by setting `TaskConfiguration.workerTaskTimeout` to a value
@@ -123,6 +123,3 @@ TaskWorkerConfiguration<Task, Result> configuration = TaskWorkerConfiguration
 TaskWorker worker = TaskWorker.create(client, process, configuration);
 ```
 
-## License
-
-Licensed under the Apache License, Version 2.0: http://www.apache.org/licenses/LICENSE-2.0
