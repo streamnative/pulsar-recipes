@@ -1,19 +1,35 @@
 name: Release
-
 on:
-  push:
-    tags:
-      - 'v*'
-
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version'
+        required: true
 jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    env:
+      RELEASE_BRANCH: branch-${{ inputs.version }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+
+      - name: Create release branch
+        run: |
+          git push origin --delete ${{ env.RELEASE_BRANCH }} || true
+          git branch -D ${{ env.RELEASE_BRANCH }} || true
+          git checkout -b ${{ env.RELEASE_BRANCH }}
+          scripts/set-project-version.sh ${{ inputs.version }}
+          git commit -m "Release ${{ inputs.version }}" -a --allow-empty
+          git push origin --set-upstream ${{ env.RELEASE_BRANCH }}
+
+          git push --delete origin v${{ inputs.version }} || true
+          git tag -d v${{ inputs.version }} || true
+          git tag v${{ inputs.version }}
+          git push origin v${{ inputs.version }}
 
       - name: Changelog
         uses: Bullrich/generate-release-changelog@master
@@ -27,8 +43,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          tag_name: v${{ inputs.version }}
+          release_name: Release ${{ inputs.version }}
           body: |
             ${{ steps.Changelog.outputs.changelog }}
           draft: false
