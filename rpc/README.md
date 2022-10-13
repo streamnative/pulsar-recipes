@@ -19,7 +19,7 @@ enable the `enableBrokerSideSubscriptionPatternEvaluation` (present since: 2.11.
 
 The second challenge is that because there are no consumers subscribed when the first request(s) are sent it means that
 when the RPC server discovers the topic, those first requests will not have been retained for the server to
-process them. A short message retention or TTL policy should be configured in this case.
+process them. A short message retention policy should be configured in this case.
 
 ## Example
 
