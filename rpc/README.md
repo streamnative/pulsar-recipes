@@ -15,7 +15,7 @@ The first is that the time for the server to discover a request topic and proces
 RPC client's timeout. The RPC server can alleviate this by configuring the `channelDiscoveryInterval` which configures
 the underlying Pulsar client's `patternAutoDiscoveryPeriod`. To improve this further, Pulsar cluster operators can
 enable the `enableBrokerSideSubscriptionPatternEvaluation` (present since: 2.11.0 and enabled by default) option in
-broker.conf which not only improves the topic evaluation performance but means that topic discovery is very quick.
+`broker.conf` which not only improves the topic evaluation performance but means that topic discovery is very quick.
 
 The second challenge is that because there are no consumers subscribed when the first request(s) are sent it means that
 when the RPC server discovers the topic, those first requests will not have been retained for the server to
