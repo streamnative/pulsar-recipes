@@ -122,14 +122,7 @@ public class RpcClient<REQUEST, RESPONSE> implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
-    try {
-      responseConsumer.close();
-    } finally {
-      requestProducer.close();
-    }
-    try (responseConsumer) {
-      requestProducer.close();
-    }
-    try (responseConsumer; requestProducer) {}
+    try (responseConsumer;
+        requestProducer) {}
   }
 }

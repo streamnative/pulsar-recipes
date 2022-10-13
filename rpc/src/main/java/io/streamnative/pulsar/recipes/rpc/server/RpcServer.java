@@ -69,8 +69,7 @@ public class RpcServer implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
-    try (requestConsumer) {
-      responseProducerPool.close();
-    }
+    try (requestConsumer;
+        responseProducerPool) {}
   }
 }
