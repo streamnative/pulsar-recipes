@@ -54,6 +54,8 @@ public class RpcClient<REQUEST, RESPONSE> implements AutoCloseable {
   /**
    * Creates a new RPC client.
    *
+   * <p>A single client instance can be used across multiple threads.
+   *
    * @param client the Pulsar client
    * @param configuration the client configuration
    * @return the RPC client
@@ -120,8 +122,14 @@ public class RpcClient<REQUEST, RESPONSE> implements AutoCloseable {
 
   @Override
   public void close() throws Exception {
+    try {
+      responseConsumer.close();
+    } finally {
+      requestProducer.close();
+    }
     try (responseConsumer) {
       requestProducer.close();
     }
+    try (responseConsumer; requestProducer) {}
   }
 }

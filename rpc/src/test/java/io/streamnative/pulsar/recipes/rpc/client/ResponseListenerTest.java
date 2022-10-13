@@ -15,7 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.rpc.client;
 
-import static io.streamnative.pulsar.recipes.rpc.common.RpcConstants.ERROR_MESSAGE;
+import static io.streamnative.pulsar.recipes.rpc.common.MessagePropertyKeys.ERROR_MESSAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;

@@ -15,7 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.rpc.client;
 
-import static io.streamnative.pulsar.recipes.rpc.common.RpcConstants.ERROR_MESSAGE;
+import static io.streamnative.pulsar.recipes.rpc.common.MessagePropertyKeys.ERROR_MESSAGE;
 
 import io.streamnative.pulsar.recipes.rpc.common.AutoAcknowledgeMessageListener;
 import java.util.Map;

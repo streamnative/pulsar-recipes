@@ -15,7 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.rpc.client;
 
-import static io.streamnative.pulsar.recipes.rpc.common.RpcConstants.RESPONSE_TOPIC;
+import static io.streamnative.pulsar.recipes.rpc.common.MessagePropertyKeys.RESPONSE_TOPIC;
 
 import java.io.IOException;
 import lombok.RequiredArgsConstructor;

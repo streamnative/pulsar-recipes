@@ -15,8 +15,8 @@
  */
 package io.streamnative.pulsar.recipes.rpc.common;
 
-public final class RpcConstants {
-  private RpcConstants() {}
+public final class MessagePropertyKeys {
+  private MessagePropertyKeys() {}
 
   public static final String RESPONSE_TOPIC = "response-topic";
   public static final String ERROR_MESSAGE = "error-message";

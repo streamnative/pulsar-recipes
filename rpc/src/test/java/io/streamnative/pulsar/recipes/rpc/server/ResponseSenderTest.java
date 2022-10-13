@@ -15,7 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.rpc.server;
 
-import static io.streamnative.pulsar.recipes.rpc.common.RpcConstants.ERROR_MESSAGE;
+import static io.streamnative.pulsar.recipes.rpc.common.MessagePropertyKeys.ERROR_MESSAGE;
 import static io.streamnative.pulsar.recipes.rpc.common.TestUtils.mockTypedMessageBuilder;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.when;

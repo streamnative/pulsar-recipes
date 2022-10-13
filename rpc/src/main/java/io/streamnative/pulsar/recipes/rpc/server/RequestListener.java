@@ -15,7 +15,7 @@
  */
 package io.streamnative.pulsar.recipes.rpc.server;
 
-import static io.streamnative.pulsar.recipes.rpc.common.RpcConstants.RESPONSE_TOPIC;
+import static io.streamnative.pulsar.recipes.rpc.common.MessagePropertyKeys.RESPONSE_TOPIC;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import io.streamnative.pulsar.recipes.rpc.common.AutoAcknowledgeMessageListener;
