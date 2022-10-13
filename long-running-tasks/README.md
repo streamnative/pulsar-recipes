@@ -30,6 +30,28 @@ exceeded a time-based processing budget.
   * Metadata is also updated by a periodical keep-alive while the task is running.
   * When the task is in a terminal state, the metadata is scheduled for reconsumption and subsequent eviction.
 
+## Recommendations
+
+* Enable compaction on the task metadata topic to ensure optimum worker start up time.
+* Set a message retention on the task metadata topic.
+  * If compaction is not enabled then this needs to be long enough for task metadata to survive until tasks reach a
+    terminal state.
+  * With compaction enabled this should be long enough to survive to the next compaction execution.
+
+### Examples
+
+```java
+PulsarAdmin admin = PulsarAdmin.builder()
+    .serviceHttpUrl("http://localhost:8080")
+    .build();
+
+admin.topicPolicies()
+    .setRetention(topic, new RetentionPolicies(retentionTimeInMinutes, retentionSizeInMB));
+
+admin.topicPolicies()
+    .setCompactionThreshold(topic, compactionThreshold);
+```
+
 ## Limitations
 
 * You task producer must not use batching to ensure the individual allocation of tasks to workers. To do this use
