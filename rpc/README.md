@@ -27,11 +27,10 @@ topics and to suffix request and response topics appropriately.
 
 e.g.
 
-| Topic     | Name                   |
+|   Topic   |          Name          |
 |-----------|------------------------|
 | Requests  | `${channel}-requests`  |
 | Responses | `${channel}-responses` |
-
 
 ### Request topic discovery
 
