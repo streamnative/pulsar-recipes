@@ -4,7 +4,34 @@ A distributed RPC framework. A limitation of traditional RPC frameworks is that 
 client and server. This system provides additional fault tolerance by using Apache Pulsar for the transport which allows
 the direct interaction between client and server to be decoupled.
 
-## Pulsar configuration
+## Methodology
+
+* Calls are communicated over a channel.
+* A channel consists of a request topic and a response topic.
+* A client sends requests on a single request topic and listens for responses on a single response topic.
+* A server listens for requests on multiple request topics and sends the responses on the appropriate response topic
+  for each request.
+* The client tells the server which topic to respond on in each request.
+* The client identifies which request a response is for by attaching a correlation id to each request.
+* The server likewise attaches the correlation id to each response.
+
+## Configuration
+
+### Topic naming
+
+An RPC server needs to listen for requests on potentially many request topics including those that may not exist when
+the listener is created. In Pulsar this is achieved by using a regular expression pattern to match potential topic
+names. Consideration must be given to match only request topics, being careful not to subscribe to response topics and
+non-RPC topics. The simplest approach to this would be to scope RPC to a specific Pulsar namespace to eliminate non-RPC
+topics and to suffix request and response topics appropriately.
+
+e.g.
+
+| Topic     | Name                   |
+|-----------|------------------------|
+| Requests  | `${channel}-requests`  |
+| Responses | `${channel}-responses` |
+
 
 ### Request topic discovery
 
@@ -44,8 +71,8 @@ var responseSchema = Schema.JSON(Response.class);
 
 ```java
 var configuration = RpcClientConfiguration.builder(requestSchema, responseSchema)
-    .requestTopic("requests")
-    .responseTopic("responses")
+    .requestTopic("rpc-requests")
+    .responseTopic("rpc-responses")
     .subscription("subscription")
     .build();
 
