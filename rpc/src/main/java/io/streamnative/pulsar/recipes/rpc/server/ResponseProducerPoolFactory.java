@@ -40,7 +40,7 @@ public class ResponseProducerPoolFactory<RESPONSE>
   }
 
   @Override
-  public void destroyObject(String key, PooledObject<Producer<RESPONSE>> pooledObject)
+  public void destroyObject(String topic, PooledObject<Producer<RESPONSE>> pooledObject)
       throws Exception {
     pooledObject.getObject().close();
   }
