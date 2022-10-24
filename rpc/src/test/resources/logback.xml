@@ -15,9 +15,17 @@
     limitations under the License.
 
 -->
-<FindBugsFilter>
-  <Match>
-    <Package name="~io\.streamnative\.pulsar\.recipes\..+"/>
-    <Bug pattern="EI_EXPOSE_REP,EI_EXPOSE_REP2,SE_BAD_FIELD"/>
-  </Match>
-</FindBugsFilter>
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="io.streamnative" level="DEBUG"/>
+  <logger name="org.apache.pulsar.client" level="WARN"/>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>

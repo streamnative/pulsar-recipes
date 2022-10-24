@@ -9,6 +9,7 @@ reliability and scalability.
 ## Recipes
 
 * [Long Running Tasks](long-running-tasks) — A distributed work queue for long-running tasks.
+* [RPC](rpc) — A distributed RPC framework.
 
 ## Build
 

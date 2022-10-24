@@ -19,12 +19,10 @@ import static io.streamnative.pulsar.recipes.task.TaskState.COMPLETED;
 import static io.streamnative.pulsar.recipes.task.TaskState.FAILED;
 import static io.streamnative.pulsar.recipes.task.TaskState.NEW;
 import static io.streamnative.pulsar.recipes.task.TaskState.PROCESSING;
-import static lombok.AccessLevel.PRIVATE;
 
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor(access = PRIVATE)
 final class TestUtils {
+  private TestUtils() {}
+
   static final String MESSAGE_ID = "messageId";
   static final String TASK = "task";
   static final byte[] ENCODED_TASK = TASK.getBytes();

@@ -27,8 +27,6 @@
   <name>Pulsar Recipes</name>
   <inceptionYear>2022</inceptionYear>
 
-  <!--  TODO  description scm developers etc-->
-
   <organization>
     <name>StreamNative</name>
     <url>https://streamnative.io/</url>
@@ -43,6 +41,8 @@
 
   <modules>
     <module>long-running-tasks</module>
+    <module>rpc</module>
+    <module>test</module>
   </modules>
 
   <distributionManagement>
@@ -79,9 +79,14 @@
     <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
     <maven.enforcer.plugin.version>3.1.0</maven.enforcer.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
+    <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
     <spotbugs.plugin.version>4.7.2.0</spotbugs.plugin.version>
     <spotless.plugin.version>2.25.0</spotless.plugin.version>
-    <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
+
+    <jacoco.class.coverage>1.00</jacoco.class.coverage>
+    <jacoco.method.coverage>0.90</jacoco.method.coverage>
+    <jacoco.line.coverage>0.90</jacoco.line.coverage>
+    <jacoco.branch.coverage>0.50</jacoco.branch.coverage>
   </properties>
 
   <dependencyManagement>
@@ -100,6 +105,11 @@
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
         <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testcontainers</groupId>
+        <artifactId>pulsar</artifactId>
+        <version>${testcontainers.version}</version>
       </dependency>
       <dependency>
         <groupId>org.projectlombok</groupId>
@@ -135,18 +145,6 @@
         <groupId>org.mockito</groupId>
         <artifactId>mockito-junit-jupiter</artifactId>
         <version>${mockito.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>${testcontainers.version}</version>
-        <scope>test</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.testcontainers</groupId>
-        <artifactId>pulsar</artifactId>
-        <version>${testcontainers.version}</version>
         <scope>test</scope>
       </dependency>
     </dependencies>
@@ -359,22 +357,22 @@
                     <limit>
                       <counter>CLASS</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>1.00</minimum>
+                      <minimum>${jacoco.class.coverage}</minimum>
                     </limit>
                     <limit>
                       <counter>METHOD</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.90</minimum>
+                      <minimum>${jacoco.method.coverage}</minimum>
                     </limit>
                     <limit>
                       <counter>LINE</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.90</minimum>
+                      <minimum>${jacoco.line.coverage}</minimum>
                     </limit>
                     <limit>
                       <counter>BRANCH</counter>
                       <value>COVEREDRATIO</value>
-                      <minimum>0.50</minimum>
+                      <minimum>${jacoco.branch.coverage}</minimum>
                     </limit>
                   </limits>
                 </rule>
