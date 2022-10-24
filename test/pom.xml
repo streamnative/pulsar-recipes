@@ -27,7 +27,7 @@
   </parent>
 
   <artifactId>pulsar-recipes-test</artifactId>
-  <name>Test</name>
+  <name>Pulsar Recipes :: Test</name>
 
   <dependencies>
     <dependency>

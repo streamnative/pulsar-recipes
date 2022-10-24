@@ -27,7 +27,7 @@
   </parent>
 
   <artifactId>pulsar-recipes-rpc</artifactId>
-  <name>RPC</name>
+  <name>Pulsar Recipes :: RPC</name>
 
   <properties>
     <commons-pool.version>2.11.1</commons-pool.version>
