@@ -45,6 +45,13 @@
     <module>test</module>
   </modules>
 
+  <scm>
+    <connection>scm:git:https://github.com/streamnative/pulsar-recipes.git</connection>
+    <developerConnection>scm:git:https://github.com/streamnative/pulsar-recipes.git</developerConnection>
+    <tag>HEAD</tag>
+    <url>https://github.com/streamnative/pulsar-recipes</url>
+  </scm>
+
   <distributionManagement>
     <repository>
       <id>ossrh</id>
