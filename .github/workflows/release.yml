@@ -21,29 +21,10 @@ jobs:
           distribution: temurin
           java-version: 11
 
-      - name: Changelog
-        uses: Bullrich/generate-release-changelog@master
-        id: Changelog
-        env:
-          REPO: ${{ github.repository }}
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: |
-            ${{ steps.Changelog.outputs.changelog }}
-          draft: false
-          prerelease: false
-
       - name: Configure Maven settings
         uses: s4u/maven-settings-action@v2.7.0
         with:
           servers: '[{"id": "ossrh", "username": "${{ secrets.SONATYPE_USERNAME }}", "password": "${{ secrets.SONATYPE_PASSWORD }}"}]'
 
       - name: Deploy to Maven Central
-        run: ./mvnw clean deploy -DskipTests
+        run: ./mvnw --no-transfer-progress --batch-mode deploy
