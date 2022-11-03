@@ -27,4 +27,4 @@ jobs:
           servers: '[{"id": "ossrh", "username": "${{ secrets.SONATYPE_USERNAME }}", "password": "${{ secrets.SONATYPE_PASSWORD }}"}]'
 
       - name: Deploy to Maven Central
-        run: ./mvnw --no-transfer-progress --batch-mode deploy
+        run: ./mvnw --no-transfer-progress --batch-mode deploy -Prelease

@@ -25,6 +25,8 @@
   <version>1.0.0-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Pulsar Recipes</name>
+  <description>A cookbook of varied use-cases built atop of Apache Pulsar</description>
+  <url>https://github.com/streamnative/pulsar-recipes</url>
   <inceptionYear>2022</inceptionYear>
 
   <organization>
@@ -39,11 +41,36 @@
     </license>
   </licenses>
 
+  <developers>
+    <developer>
+      <id>nahguam</id>
+      <name>Dave Maughan</name>
+      <email>dave.maughan@streamnative.io</email>
+      <organization>StreamNative</organization>
+      <organizationUrl>https://streamnative.io/</organizationUrl>
+      <timezone>0</timezone>
+    </developer>
+    <developer>
+      <id>teabot</id>
+      <name>Elliot West</name>
+      <email>elliot.west@streamnative.io</email>
+      <organization>StreamNative</organization>
+      <organizationUrl>https://streamnative.io/</organizationUrl>
+      <timezone>0</timezone>
+    </developer>
+  </developers>
+
   <modules>
     <module>long-running-tasks</module>
     <module>rpc</module>
     <module>test</module>
   </modules>
+
+  <scm>
+    <connection>scm:git:git://github.com/streamnative/pulsar-recipes.git</connection>
+    <developerConnection>scm:git:git://github.com/streamnative/pulsar-recipes.git</developerConnection>
+    <url>https://github.com/streamnative/pulsar-recipes</url>
+  </scm>
 
   <distributionManagement>
     <repository>
@@ -78,6 +105,9 @@
     <license.plugin.version>4.1</license.plugin.version>
     <maven.compiler.plugin.version>3.10.1</maven.compiler.plugin.version>
     <maven.enforcer.plugin.version>3.1.0</maven.enforcer.plugin.version>
+    <maven.gpg.plugin.version>3.0.1</maven.gpg.plugin.version>
+    <maven.javadoc.plugin.version>3.4.1</maven.javadoc.plugin.version>
+    <maven.source.plugin.version>3.2.1</maven.source.plugin.version>
     <maven.surefire.plugin.version>3.0.0-M7</maven.surefire.plugin.version>
     <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
     <spotbugs.plugin.version>4.7.2.0</spotbugs.plugin.version>
@@ -176,6 +206,9 @@
             <includes>
               <include>**/*.md</include>
             </includes>
+            <excludes>
+              <exclude>**/target/**/*.md</exclude>
+            </excludes>
             <flexmark/>
           </markdown>
           <formats>
@@ -394,5 +427,62 @@
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven.gpg.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>sign-artifacts</id>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <phase>verify</phase>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven.javadoc.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>aggregate</id>
+                <goals>
+                  <goal>aggregate</goal>
+                </goals>
+                <phase>site</phase>
+              </execution>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>${maven.source.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>

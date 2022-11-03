@@ -27,7 +27,7 @@
   </parent>
 
   <artifactId>pulsar-recipes-long-running-tasks</artifactId>
-  <name>Long Running Tasks</name>
+  <name>Pulsar Recipes :: Long Running Tasks</name>
 
   <properties>
     <commons-math3.version>3.6.1</commons-math3.version>
