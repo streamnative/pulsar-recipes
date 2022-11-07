@@ -22,7 +22,7 @@
 
   <groupId>io.streamnative</groupId>
   <artifactId>pulsar-recipes</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1-SNAPSHOT</version>
   <packaging>pom</packaging>
   <name>Pulsar Recipes</name>
   <description>A cookbook of varied use-cases built atop of Apache Pulsar</description>
