@@ -93,7 +93,7 @@
     <checkstyle.version>10.3.4</checkstyle.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
     <junit.version>5.9.1</junit.version>
-    <logback.version>1.4.3</logback.version>
+    <logback.version>1.4.12</logback.version>
     <lombok.version>1.18.24</lombok.version>
     <mockito.version>4.8.0</mockito.version>
     <pulsar.version>2.10.1</pulsar.version>
